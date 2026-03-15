@@ -46,7 +46,7 @@ When the local machine also runs `pj-net-test` or `pj-peer-probe`, do not use `1
 
 Use your public IP or DNS name in:
 
-- [local-tester-public.conf](/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/resources/config/local-tester-public.conf)
+- [local-tester-public.conf](resources/config/local-tester-public.conf)
 
 This ensures both sides follow the same real internet signaling path.
 

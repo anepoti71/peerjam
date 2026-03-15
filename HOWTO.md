@@ -26,7 +26,7 @@ Recommended:
 On each machine:
 
 ```bash
-cd /Users/anepoti/workspace/experiments/audio-jam/peerjam-native
+cd peerjam-native
 cmake -S . -B build
 cmake --build build -j 4
 ```
@@ -41,17 +41,17 @@ Expected binaries:
 
 Default config files are stored in:
 
-- [signal-server.conf](/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/resources/config/signal-server.conf)
-- [net-test.conf](/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/resources/config/net-test.conf)
-- [peer-probe.conf](/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/resources/config/peer-probe.conf)
+- [signal-server.conf](resources/config/signal-server.conf)
+- [net-test.conf](resources/config/net-test.conf)
+- [peer-probe.conf](resources/config/peer-probe.conf)
 
 For the specific case where your local machine is the signaling server and another machine is remote, use these prepared examples:
 
-- [local-server-public.conf](/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/resources/config/local-server-public.conf)
-- [local-tester-public.conf](/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/resources/config/local-tester-public.conf)
-- [remote-tester-public.conf](/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/resources/config/remote-tester-public.conf)
+- [local-server-public.conf](resources/config/local-server-public.conf)
+- [local-tester-public.conf](resources/config/local-tester-public.conf)
+- [remote-tester-public.conf](resources/config/remote-tester-public.conf)
 
-Troubleshooting for that topology is documented in [REMOTE_LOCAL_SERVER_TROUBLESHOOTING.md](/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/REMOTE_LOCAL_SERVER_TROUBLESHOOTING.md).
+Troubleshooting for that topology is documented in [REMOTE_LOCAL_SERVER_TROUBLESHOOTING.md](REMOTE_LOCAL_SERVER_TROUBLESHOOTING.md).
 
 Each binary accepts:
 
@@ -89,14 +89,14 @@ logging.level = off
 Run this on the public host:
 
 ```bash
-cd /Users/anepoti/workspace/experiments/audio-jam/peerjam-native
+cd peerjam-native
 ./build/pj-signal-server --config resources/config/signal-server.conf
 ```
 
 If the public host is your local machine and you want simple start/stop commands, use:
 
 ```bash
-cd /Users/anepoti/workspace/experiments/audio-jam/peerjam-native
+cd peerjam-native
 make build
 make server-start
 make server-status
@@ -106,8 +106,8 @@ make server-stop
 
 The `Makefile` uses:
 
-- [local-server-public.conf](/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/resources/config/local-server-public.conf) for `make server-start`
-- [local-tester-public.conf](/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/resources/config/local-tester-public.conf) for `make net-test-local`
+- [local-server-public.conf](resources/config/local-server-public.conf) for `make server-start`
+- [local-tester-public.conf](resources/config/local-tester-public.conf) for `make net-test-local`
 - `.run/pid` for PID files
 - `.run/log` for local server logs
 

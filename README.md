@@ -4,22 +4,22 @@ PeerJam Native is the C++ implementation path for remote live-music transport an
 
 ## Governance
 
-Project governance lives under [`.specify/`](/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/.specify).
+Project governance lives under [`.specify/`](.specify).
 That folder is the source of truth for architecture and change policy:
 
-- constitution: [constitution.md](/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/.specify/memory/constitution.md)
-- layer specification: [layer-specification.md](/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/.specify/memory/layer-specification.md)
-- verification baseline: [verification.md](/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/.specify/memory/verification.md)
-- metrics guidance: [metrics-spec.md](/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/.specify/memory/metrics-spec.md)
-- architecture decisions: [ADR README](/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/.specify/adr/README.md)
+- constitution: [constitution.md](.specify/memory/constitution.md)
+- layer specification: [layer-specification.md](.specify/memory/layer-specification.md)
+- verification baseline: [verification.md](.specify/memory/verification.md)
+- metrics guidance: [metrics-spec.md](.specify/memory/metrics-spec.md)
+- architecture decisions: [ADR README](.specify/adr/README.md)
 
 All future architecture and implementation changes should be evaluated against `.specify/`,
 not the removed Speckit layout.
 
-Operational step-by-step usage is documented in [HOWTO.md](/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/HOWTO.md).
-Local operator start/stop helpers are available in the top-level [Makefile](/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/Makefile).
+Operational step-by-step usage is documented in [HOWTO.md](HOWTO.md).
+Local operator start/stop helpers are available in the top-level [Makefile](Makefile).
 
-Runtime configuration files live under [resources/config](/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/resources/config).
+Runtime configuration files live under [resources/config](resources/config).
 
 It reuses:
 
