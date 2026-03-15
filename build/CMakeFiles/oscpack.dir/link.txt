@@ -1,0 +1,2 @@
+/usr/bin/ar qc liboscpack.a "CMakeFiles/oscpack.dir/Users/anepoti/workspace/experiments/audio-jam/sonobus/deps/aoo/deps/oscpack/osc/OscTypes.cpp.o" "CMakeFiles/oscpack.dir/Users/anepoti/workspace/experiments/audio-jam/sonobus/deps/aoo/deps/oscpack/osc/OscReceivedElements.cpp.o" "CMakeFiles/oscpack.dir/Users/anepoti/workspace/experiments/audio-jam/sonobus/deps/aoo/deps/oscpack/osc/OscPrintReceivedElements.cpp.o" "CMakeFiles/oscpack.dir/Users/anepoti/workspace/experiments/audio-jam/sonobus/deps/aoo/deps/oscpack/osc/OscOutboundPacketStream.cpp.o"
+/usr/bin/ranlib liboscpack.a

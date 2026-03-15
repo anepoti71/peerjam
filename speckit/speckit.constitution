@@ -1,0 +1,147 @@
+# PeerJam Native Speckit Constitution
+
+## Purpose
+
+PeerJam Native exists to enable real-time remote music collaboration over the public internet. The system is not a general media-streaming platform. Every architectural decision must be evaluated against the needs of live musical interaction: low one-way latency, stable rhythm, predictable synchronization, and graceful degradation under adverse network conditions.
+
+## Non-Negotiable Principles
+
+### 1. Music First
+
+The primary optimization target is interactive musical performance, not bulk throughput, archival quality, or conferencing convenience.
+
+Required implications:
+- Favor lower latency over feature breadth.
+- Reject designs that improve average quality while harming timing stability.
+- Treat timing regressions as first-class failures.
+
+### 2. Performance Is Mandatory
+
+The implementation must prefer performant solutions in all latency-sensitive and throughput-sensitive paths.
+
+Required implications:
+- The hot path must avoid unnecessary heap allocation, copying, dynamic dispatch, and generic abstraction overhead.
+- Domain boundaries must be explicit, but the implementation must remain data-oriented and cache-conscious.
+- Runtime control loops must be bounded, measurable, and safe under sustained load.
+- Convenience abstractions are acceptable only outside critical transport, synchronization, and audio-processing paths.
+- Candidate gathering, path scoring, and path switching policy must remain outside the steady-state media processing path.
+- Background reprobe and switching decisions must execute asynchronously from the media processing path.
+
+### 3. Direct Media Path by Default
+
+Media must flow peer-to-peer over UDP whenever a direct path is possible.
+
+Required implications:
+- Signaling infrastructure may assist discovery, NAT coordination, role assignment, and session bootstrap.
+- Signaling infrastructure must not relay media by default.
+- Relay transport is an explicit fallback path, not the standard architecture.
+
+### 4. Public-Internet Reality
+
+The system must assume unmanaged networks with NAT, jitter, packet loss, path asymmetry, and route changes.
+
+Required implications:
+- All runtime control loops must tolerate imperfect clocks and unstable packet timing.
+- All latency claims must be framed against real internet paths, not just LAN behavior.
+- Path choice must account for stability, not latency alone.
+
+### 5. Small Buffers, Controlled Adaptation
+
+The system must keep jitter buffers as small as practical while remaining stable.
+
+Required implications:
+- Buffer growth must be deliberate, measured, and reversible.
+- Sudden large latency increases are a failure mode, not a valid adaptation strategy.
+- Buffer adaptation must be driven by packet timing metrics and audible-risk thresholds.
+
+### 6. Continuous Synchronization
+
+Synchronization is a runtime system, not a one-time handshake.
+
+Required implications:
+- Clock offset, drift, buffer fill, and playout timing must be monitored continuously.
+- Long sessions must remain stable without manual resets.
+- Drift correction must be smooth enough to avoid audible artifacts.
+
+### 7. Gentle Drift Correction
+
+Drift must be corrected by small continuous rate changes and fractional resampling, never by abrupt time jumps in normal operation.
+
+Required implications:
+- Preferred playback-rate correction range is near-unity, for example `0.9999-1.0001`.
+- Sample drops, silence insertion, and hard jumps are emergency recovery tools only.
+- Drift-control logic must prioritize inaudibility.
+
+### 8. Measurable State
+
+Every critical transport and synchronization mechanism must expose metrics.
+
+Required implications:
+- Path selection must produce RTT, jitter, loss, and stability scores.
+- Audio runtime must expose buffer fill, reorder, resend, underrun, and drift telemetry.
+- The system must be debuggable without guesswork.
+
+### 9. Explicit Timing Authority
+
+Even in a P2P media topology, there must be a well-defined timing reference.
+
+Required implications:
+- Each session must assign a master timing authority during setup.
+- Followers must adapt relative to that reference.
+- The master role must be visible in session state and transferable if needed.
+
+### 10. PCM First, Codec Optional
+
+The default streaming mode is uncompressed PCM unless measured path conditions justify compression.
+
+Required implications:
+- PCM is the baseline for best-case performance and minimum codec delay.
+- Low-delay Opus is a conditional fallback for constrained bandwidth or unstable links.
+- Codec choice must remain a runtime policy decision, not a compile-time assumption.
+
+### 11. Layer Separation
+
+Transport, path management, synchronization, jitter handling, audio framing, and device I/O must remain separable.
+
+Required implications:
+- No layer may hide timing state that another layer requires for adaptation.
+- Cross-layer coupling is allowed only through explicit interfaces and metrics.
+- The implementation must support replacing one layer without rewriting the entire system.
+
+### 12. Geographic Truthfulness
+
+The system must not promise sub-30 ms one-way interaction beyond plausible physical limits.
+
+Required implications:
+- Approximate fiber propagation cost must be treated as a hard budget component.
+- Regional proximity is a prerequisite for best musical results.
+- Recommendations must distinguish transport quality from geography-imposed delay.
+
+### 13. Fail Safe, Not Fake
+
+When conditions do not support rhythm-sensitive collaboration, the system must say so explicitly.
+
+Required implications:
+- Reports must classify paths as ready, marginal, or not ready.
+- The system must not conceal severe instability behind oversized buffers.
+- Operator guidance must prefer truth over optimism.
+
+## Required Acceptance Criteria
+
+Any implementation or change is acceptable only if it preserves these invariants:
+
+- P2P UDP media remains the primary path.
+- Performance-sensitive paths remain allocation-conscious and low-overhead.
+- Runtime metrics remain available for path, transport, and synchronization state.
+- Clock drift is managed continuously with smooth correction.
+- Buffering remains intentionally small and measurable.
+- The architecture remains viable on real public-internet links.
+
+## Change Policy
+
+Changes that violate this constitution require an explicit architecture decision record stating:
+
+- which principle is being bent or broken
+- why the alternative is necessary
+- what measurable downside is introduced
+- how the downside will be bounded or removed later
