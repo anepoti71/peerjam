@@ -1,0 +1,1 @@
+/usr/bin/c++ -Wl,-search_paths_first -Wl,-headerpad_max_install_names "CMakeFiles/pj-net-test.dir/src/net_test_main.cpp.o" -o pj-net-test  libpeerjam_measure.a libaoo.a liboscpack.a /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/../sonobus/deps/mac/lib/libopus.a -framework CoreFoundation /opt/homebrew/lib/libportaudio.dylib

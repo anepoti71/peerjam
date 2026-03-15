@@ -1,0 +1,7 @@
+{
+	"InstallScripts" : 
+	[
+		"/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/build-portaudio/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

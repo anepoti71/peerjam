@@ -1,3 +1,4 @@
+#include "peerjam/common/json_utils.hpp"
 #include "peerjam/common/stats_utils.hpp"
 #include "peerjam/logic/probe/measurement.hpp"
 
@@ -6,10 +7,6 @@
 
 namespace peerjam {
 namespace {
-
-std::string quote(const std::string& value) {
-    return "\"" + value + "\"";
-}
 
 }  // namespace
 
@@ -213,12 +210,12 @@ std::string MeasurementReport::to_json() const {
 std::string Recommendation::to_json() const {
     std::ostringstream os;
     os << "{\n"
-       << "    \"status\": " << quote(status) << ",\n"
-       << "    \"codec\": " << quote(codec) << ",\n"
+       << "    \"status\": " << json_quote(status) << ",\n"
+       << "    \"codec\": " << json_quote(codec) << ",\n"
        << "    \"sample_rate_hz\": " << sample_rate_hz << ",\n"
        << "    \"frame_samples\": " << frame_samples << ",\n"
        << "    \"initial_buffer_ms\": " << initial_buffer_ms << ",\n"
-       << "    \"rationale\": " << quote(rationale) << "\n"
+       << "    \"rationale\": " << json_quote(rationale) << "\n"
        << "  }";
     return os.str();
 }

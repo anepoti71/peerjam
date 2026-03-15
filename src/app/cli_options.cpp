@@ -88,6 +88,7 @@ void print_cli_help(CliMode mode) {
         << "  --source-buffer-ms MS\n"
         << "  --sink-buffer-ms MS\n"
         << "  --tone-hz HZ\n"
+        << "  --audio-device-io\n"
         << "  --disable-drift-correction\n"
         << "  --group-password PASSWORD\n"
         << "  --user-password PASSWORD\n";
@@ -137,6 +138,9 @@ bool parse_peer_options(int argc, char** argv, CliMode mode, PeerOptions& option
         read_int_arg(argv, argv + argc, "--sink-buffer-ms", options.audio.sink_buffer_ms);
         read_double_arg(argv, argv + argc, "--tone-hz", options.audio.tone_hz);
         for (char** it = argv; it != argv + argc; ++it) {
+            if (std::string(*it) == "--audio-device-io") {
+                options.audio.device_io_enabled = true;
+            }
             if (std::string(*it) == "--disable-drift-correction") {
                 options.audio.dynamic_resampling = false;
             }

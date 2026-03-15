@@ -22,6 +22,8 @@ struct AudioOptions {
     int resend_max_frames {};
     int redundancy {};
     bool dynamic_resampling {true};
+    std::string codec {"pcm"};
+    bool device_io_enabled {false};
     double tone_hz {};
     double tone_level {};
     int source_id {1};
@@ -40,6 +42,7 @@ struct AudioStreamReport {
     std::uint32_t resent_blocks {};
     std::uint32_t gap_blocks {};
     double drift_ppm_estimate {};
+    std::string codec_name;
     SummaryStats output_rms;
     SummaryStats output_peak;
     SummaryStats buffer_fill_ratio;
@@ -60,6 +63,10 @@ class AudioStreamTracker {
     void on_reordered_blocks(std::uint32_t count);
     void on_resent_blocks(std::uint32_t count);
     void on_gap_blocks(std::uint32_t count);
+    double current_drift_ppm_estimate() const;
+    std::uint32_t current_rendered_blocks() const { return rendered_blocks_; }
+    std::uint32_t current_lost_blocks() const { return lost_blocks_; }
+    std::uint32_t current_gap_blocks() const { return gap_blocks_; }
     AudioStreamReport finish() const;
 
   private:

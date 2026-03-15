@@ -1,4 +1,5 @@
 #include "peerjam/common/stats_utils.hpp"
+#include "peerjam/common/json_utils.hpp"
 #include "peerjam/logic/audio/audio_stream.hpp"
 
 #include <cmath>
@@ -57,6 +58,13 @@ void AudioStreamTracker::on_render_block(const float* interleaved, int frames, i
 }
 
 void AudioStreamTracker::on_buffer_fill(float ratio, std::uint64_t steady_now_ns) {
+    constexpr std::size_t kDriftWindowSamples = 300;
+    if (buffer_fill_ratio_.size() >= kDriftWindowSamples) {
+        buffer_fill_ratio_.erase(buffer_fill_ratio_.begin());
+    }
+    if (buffer_fill_time_s_.size() >= kDriftWindowSamples) {
+        buffer_fill_time_s_.erase(buffer_fill_time_s_.begin());
+    }
     buffer_fill_ratio_.push_back(std::clamp(static_cast<double>(ratio), 0.0, 1.5));
     buffer_fill_time_s_.push_back(static_cast<double>(steady_now_ns) / 1'000'000'000.0);
 }
@@ -67,6 +75,10 @@ void AudioStreamTracker::on_lost_blocks(std::uint32_t count) { lost_blocks_ += c
 void AudioStreamTracker::on_reordered_blocks(std::uint32_t count) { reordered_blocks_ += count; }
 void AudioStreamTracker::on_resent_blocks(std::uint32_t count) { resent_blocks_ += count; }
 void AudioStreamTracker::on_gap_blocks(std::uint32_t count) { gap_blocks_ += count; }
+
+double AudioStreamTracker::current_drift_ppm_estimate() const {
+    return estimate_drift_ppm(buffer_fill_time_s_, buffer_fill_ratio_, options_.sink_buffer_ms);
+}
 
 SummaryStats AudioStreamTracker::summarize(const std::vector<double>& values) {
     if (values.empty()) {
@@ -97,7 +109,8 @@ AudioStreamReport AudioStreamTracker::finish() const {
     report.output_rms = summarize(output_rms_);
     report.output_peak = summarize(output_peak_);
     report.buffer_fill_ratio = summarize(buffer_fill_ratio_);
-    report.drift_ppm_estimate = estimate_drift_ppm(buffer_fill_time_s_, buffer_fill_ratio_, options_.sink_buffer_ms);
+    report.drift_ppm_estimate = current_drift_ppm_estimate();
+    report.codec_name = options_.codec;
     return report;
 }
 
@@ -126,6 +139,7 @@ std::string AudioStreamReport::to_json() const {
        << "  \"reordered_blocks\": " << reordered_blocks << ",\n"
        << "  \"resent_blocks\": " << resent_blocks << ",\n"
        << "  \"gap_blocks\": " << gap_blocks << ",\n"
+       << "  \"codec\": " << json_quote(codec_name) << ",\n"
        << "  \"buffer_fill_ratio\": " << fmt_stats(buffer_fill_ratio) << ",\n"
        << "  \"output_rms\": " << fmt_stats(output_rms) << ",\n"
        << "  \"output_peak\": " << fmt_stats(output_peak) << ",\n"

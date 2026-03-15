@@ -1,3 +1,4 @@
+#include "peerjam/common/json_utils.hpp"
 #include "peerjam/logic/network/candidate.hpp"
 
 #include <arpa/inet.h>
@@ -7,17 +8,13 @@
 namespace peerjam {
 namespace {
 
-std::string quote(const std::string& value) {
-    return "\"" + value + "\"";
-}
-
 std::string format_candidate(const NetworkCandidate& candidate) {
     std::ostringstream os;
     os << "{"
-       << "\"type\":" << quote(candidate_type_name(candidate.type)) << ","
-       << "\"foundation\":" << quote(candidate.foundation) << ","
-       << "\"interface\":" << quote(candidate.interface_name) << ","
-       << "\"address\":" << quote(candidate_address_string(candidate)) << ","
+       << "\"type\":" << json_quote(candidate_type_name(candidate.type)) << ","
+       << "\"foundation\":" << json_quote(candidate.foundation) << ","
+       << "\"interface\":" << json_quote(candidate.interface_name) << ","
+       << "\"address\":" << json_quote(candidate_address_string(candidate)) << ","
        << "\"priority\":" << candidate.priority << ","
        << "\"loopback\":" << (candidate.is_loopback ? "true" : "false")
        << "}";
@@ -80,10 +77,10 @@ std::string PathSelectionReport::to_json() const {
             os << ",";
         }
         os << "{"
-           << "\"local_foundation\":" << quote(pair_measurements[i].local.foundation) << ","
-           << "\"remote_foundation\":" << quote(pair_measurements[i].remote.foundation) << ","
-           << "\"local_address\":" << quote(candidate_address_string(pair_measurements[i].local)) << ","
-           << "\"remote_address\":" << quote(candidate_address_string(pair_measurements[i].remote)) << ","
+           << "\"local_foundation\":" << json_quote(pair_measurements[i].local.foundation) << ","
+           << "\"remote_foundation\":" << json_quote(pair_measurements[i].remote.foundation) << ","
+           << "\"local_address\":" << json_quote(candidate_address_string(pair_measurements[i].local)) << ","
+           << "\"remote_address\":" << json_quote(candidate_address_string(pair_measurements[i].remote)) << ","
            << "\"score\":" << std::fixed << std::setprecision(3) << pair_measurements[i].score.score << ","
            << "\"latency_ms\":" << pair_measurements[i].score.latency_ms << ","
            << "\"jitter_ms\":" << pair_measurements[i].score.jitter_ms << ","
@@ -103,10 +100,10 @@ std::string PathSelectionReport::to_json() const {
             os << ",";
         }
         os << "{"
-           << "\"from_local_foundation\":" << quote(switch_events[i].from_local_foundation) << ","
-           << "\"to_local_foundation\":" << quote(switch_events[i].to_local_foundation) << ","
-           << "\"from_remote_foundation\":" << quote(switch_events[i].from_remote_foundation) << ","
-           << "\"to_remote_foundation\":" << quote(switch_events[i].to_remote_foundation) << ","
+           << "\"from_local_foundation\":" << json_quote(switch_events[i].from_local_foundation) << ","
+           << "\"to_local_foundation\":" << json_quote(switch_events[i].to_local_foundation) << ","
+           << "\"from_remote_foundation\":" << json_quote(switch_events[i].from_remote_foundation) << ","
+           << "\"to_remote_foundation\":" << json_quote(switch_events[i].to_remote_foundation) << ","
            << "\"previous_score\":" << switch_events[i].previous_score << ","
            << "\"next_score\":" << switch_events[i].next_score
            << "}";

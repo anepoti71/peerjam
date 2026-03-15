@@ -1,5 +1,7 @@
 #include "peerjam/app/session_profile.hpp"
 
+#include "peerjam/common/json_utils.hpp"
+#include "peerjam/common/logger.hpp"
 #include "peerjam/logic/audio/audio_stream.hpp"
 
 #include <fstream>
@@ -9,10 +11,6 @@
 
 namespace peerjam {
 namespace {
-
-std::string quote(const std::string& value) {
-    return "\"" + value + "\"";
-}
 
 std::string trim(std::string_view text) {
     const auto begin = text.find_first_not_of(" \t\r\n");
@@ -24,23 +22,104 @@ std::string trim(std::string_view text) {
 }
 
 bool line_has_key(std::string_view line, const std::string& key) {
-    return trim(line).rfind(quote(key) + ":", 0) == 0;
+    return trim(line).rfind(json_quote(key) + ":", 0) == 0;
 }
 
 std::optional<std::string> parse_string_value(std::string_view line) {
+    auto fail = [line](const char* reason) -> std::optional<std::string> {
+        PJ_LOG(Info, "session profile parse error: " << reason << " line=" << std::string(line));
+        return std::nullopt;
+    };
     const auto colon_pos = line.find(':');
     if (colon_pos == std::string_view::npos) {
-        return std::nullopt;
+        return fail("missing colon");
     }
     const auto first_quote = line.find('"', colon_pos + 1);
     if (first_quote == std::string_view::npos) {
-        return std::nullopt;
+        return fail("missing opening quote");
     }
-    const auto second_quote = line.find('"', first_quote + 1);
-    if (second_quote == std::string_view::npos) {
-        return std::nullopt;
+    std::string value;
+    bool escaped = false;
+    for (std::size_t i = first_quote + 1; i < line.size(); ++i) {
+        const char ch = line[i];
+        if (!escaped) {
+            if (ch == '\\') {
+                escaped = true;
+                continue;
+            }
+            if (ch == '"') {
+                return value;
+            }
+            value.push_back(ch);
+            continue;
+        }
+
+        escaped = false;
+        switch (ch) {
+            case '"':
+                value.push_back('"');
+                break;
+            case '\\':
+                value.push_back('\\');
+                break;
+            case '/':
+                value.push_back('/');
+                break;
+            case 'b':
+                value.push_back('\b');
+                break;
+            case 'f':
+                value.push_back('\f');
+                break;
+            case 'n':
+                value.push_back('\n');
+                break;
+            case 'r':
+                value.push_back('\r');
+                break;
+            case 't':
+                value.push_back('\t');
+                break;
+            case 'u': {
+                if (i + 4 >= line.size()) {
+                    return fail("truncated unicode escape");
+                }
+                auto hex_value = [](char c) -> int {
+                    if (c >= '0' && c <= '9') {
+                        return c - '0';
+                    }
+                    if (c >= 'a' && c <= 'f') {
+                        return 10 + (c - 'a');
+                    }
+                    if (c >= 'A' && c <= 'F') {
+                        return 10 + (c - 'A');
+                    }
+                    return -1;
+                };
+                const int h1 = hex_value(line[i + 1]);
+                const int h2 = hex_value(line[i + 2]);
+                const int h3 = hex_value(line[i + 3]);
+                const int h4 = hex_value(line[i + 4]);
+                if (h1 < 0 || h2 < 0 || h3 < 0 || h4 < 0) {
+                    return fail("invalid unicode escape");
+                }
+                const int codepoint = (h1 << 12) | (h2 << 8) | (h3 << 4) | h4;
+                if (codepoint <= 0x7F) {
+                    value.push_back(static_cast<char>(codepoint));
+                } else {
+                    return fail("non-ascii unicode escape unsupported");
+                }
+                i += 4;
+                break;
+            }
+            default:
+                return fail("invalid escape sequence");
+        }
     }
-    return std::string(line.substr(first_quote + 1, second_quote - first_quote - 1));
+    if (escaped) {
+        return fail("trailing escape sequence");
+    }
+    return fail("unterminated string");
 }
 
 template <typename T>
@@ -124,6 +203,7 @@ void apply_session_profile(const Recommendation& recommendation, AudioOptions& o
     options.sample_rate_hz = recommendation.sample_rate_hz;
     options.frame_samples = recommendation.frame_samples;
     options.sink_buffer_ms = static_cast<int>(recommendation.initial_buffer_ms + 0.5);
+    options.codec = recommendation.codec == "opus-lowdelay" ? "opus-lowdelay" : "pcm";
 
     // Keep the source side slightly tighter while respecting the tested operating point.
     const int source_buffer_ms = static_cast<int>((recommendation.initial_buffer_ms * 0.6) + 0.5);

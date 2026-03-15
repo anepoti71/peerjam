@@ -4,6 +4,7 @@ project(peerjam_native LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+option(PEERJAM_ENABLE_PORTAUDIO "Enable PortAudio device I/O backend" OFF)
 
 set(AOO_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../sonobus/deps/aoo")
 set(AOO_OSCPACK_ROOT "${AOO_ROOT}/deps/oscpack")
@@ -73,6 +74,18 @@ target_include_directories(peerjam_measure PUBLIC
   ${AOO_ROOT}/lib
 )
 target_link_libraries(peerjam_measure PUBLIC aoo)
+
+if(PEERJAM_ENABLE_PORTAUDIO)
+  find_path(PORTAUDIO_INCLUDE_DIR portaudio.h)
+  find_library(PORTAUDIO_LIBRARY portaudio)
+  if(PORTAUDIO_INCLUDE_DIR AND PORTAUDIO_LIBRARY)
+    target_include_directories(peerjam_measure PUBLIC ${PORTAUDIO_INCLUDE_DIR})
+    target_link_libraries(peerjam_measure PUBLIC ${PORTAUDIO_LIBRARY})
+    target_compile_definitions(peerjam_measure PUBLIC PEERJAM_HAS_PORTAUDIO=1)
+  else()
+    message(WARNING "PEERJAM_ENABLE_PORTAUDIO=ON but PortAudio not found; building without device I/O backend")
+  endif()
+endif()
 
 add_executable(pj-signal-server src/signal_server_main.cpp)
 target_include_directories(pj-signal-server PRIVATE

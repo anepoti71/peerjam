@@ -3,6 +3,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <atomic>
+#include <shared_mutex>
 #include <string>
 #include <sys/socket.h>
 
@@ -17,6 +18,7 @@ class UdpDatagramSocket {
     UdpDatagramSocket& operator=(const UdpDatagramSocket&) = delete;
 
     int open(int port);
+    // Binds to the exact provided address and port.
     int open_bound(const sockaddr_storage& addr, socklen_t addr_len);
     int rebind(const sockaddr_storage& addr, socklen_t addr_len);
     void close();
@@ -32,6 +34,7 @@ class UdpDatagramSocket {
   private:
     static int create_bound_socket(const sockaddr_storage& addr, socklen_t addr_len, bool preserve_port);
 
+    mutable std::shared_mutex fd_mutex_;
     std::atomic<int> fd_ {-1};
 };
 

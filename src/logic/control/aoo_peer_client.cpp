@@ -1,4 +1,5 @@
 #include "peerjam/app/session_profile.hpp"
+#include "peerjam/common/json_utils.hpp"
 #include "peerjam/common/logger.hpp"
 #include "peerjam/logic/control/aoo_peer_client.hpp"
 
@@ -278,6 +279,31 @@ bool AooPeerClient::apply_selected_path(const PathSelectionReport& report) {
     return true;
 }
 
+void AooPeerClient::elect_timing_authority(const std::string& remote_user) {
+    std::lock_guard lock(timing_mutex_);
+    // Two-party session assumption: deterministic lexical ordering between local and one remote user.
+    if (remote_user.empty()) {
+        timing_role_ = "unknown";
+        timing_master_user_ = "unknown";
+        return;
+    }
+    if (options_.user <= remote_user) {
+        timing_role_ = "master";
+        timing_master_user_ = options_.user;
+    } else {
+        timing_role_ = "follower";
+        timing_master_user_ = remote_user;
+    }
+}
+
+std::string AooPeerClient::timing_state_json() const {
+    std::lock_guard lock(timing_mutex_);
+    return "{"
+        "\"role\":" + json_quote(timing_role_) + ","
+        "\"master_user\":" + json_quote(timing_master_user_)
+        + "}";
+}
+
 void AooPeerClient::handle_client_event(const aoo_event* event) {
     switch (event->type) {
         case AOONET_CLIENT_CONNECT_EVENT:
@@ -286,6 +312,11 @@ void AooPeerClient::handle_client_event(const aoo_event* event) {
             break;
         case AOONET_CLIENT_DISCONNECT_EVENT:
             connected_.store(false);
+            {
+                std::lock_guard lock(timing_mutex_);
+                timing_role_ = "unknown";
+                timing_master_user_ = "unknown";
+            }
             PJ_LOG(Info, "disconnected_from_signal_server");
             break;
         case AOONET_CLIENT_GROUP_JOIN_EVENT:
@@ -307,6 +338,7 @@ void AooPeerClient::handle_client_event(const aoo_event* event) {
                 try_fetch_remote_candidates(endpoint.user);
                 session_token_ = session_token_for_group(options_.group);
                 probe_.set_session_token(session_token_);
+                elect_timing_authority(endpoint.user);
                 PJ_LOG(Info, "peer_joined=" << endpoint.user
                     << " address=" << UdpDatagramSocket::address_to_string(endpoint.addr));
             }
@@ -333,7 +365,8 @@ void AooPeerClient::print_qualification_report(const PathSelectionReport& path_r
     std::cout << "{\n"
               << "  \"network\": " << path_report.to_json() << ",\n"
               << "  \"probe\": " << probe_report.to_json() << ",\n"
-              << "  \"session_profile\": " << probe_report.recommendation.to_json() << "\n"
+              << "  \"session_profile\": " << probe_report.recommendation.to_json() << ",\n"
+              << "  \"timing\": " << timing_state_json() << "\n"
               << "}\n";
 }
 
@@ -385,6 +418,8 @@ int AooPeerClient::run_qualification(bool include_audio) {
     }
     path_report = path_manager_.current_report();
     if (include_audio && options_.audio.seconds > 0) {
+        apply_session_profile(probe_report.recommendation, options_.audio);
+        audio_.set_options(options_.audio);
         if (audio_.setup(socket_, &remote_endpoint_) != 0) {
             return 3;
         }
@@ -394,6 +429,7 @@ int AooPeerClient::run_qualification(bool include_audio) {
                   << "  \"network\": " << path_report.to_json() << ",\n"
                   << "  \"probe\": " << probe_report.to_json() << ",\n"
                   << "  \"session_profile\": " << probe_report.recommendation.to_json() << ",\n"
+                  << "  \"timing\": " << timing_state_json() << ",\n"
                   << "  \"audio\": " << audio_report.to_json() << "\n"
                   << "}\n";
     } else {

@@ -3,6 +3,7 @@
 #include <arpa/inet.h>
 #include <cerrno>
 #include <cstring>
+#include <mutex>
 #include <netinet/in.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
@@ -64,6 +65,7 @@ int UdpDatagramSocket::create_bound_socket(const sockaddr_storage& addr, socklen
 }
 
 int UdpDatagramSocket::open(int port) {
+    std::unique_lock lock(fd_mutex_);
     sockaddr_storage addr {};
     auto* in = reinterpret_cast<sockaddr_in*>(&addr);
     in->sin_family = AF_INET;
@@ -73,32 +75,42 @@ int UdpDatagramSocket::open(int port) {
     if (fd < 0) {
         return 1;
     }
-    close();
-    fd_.store(fd);
+    const int old_fd = fd_.exchange(fd);
+    if (old_fd >= 0) {
+        ::close(old_fd);
+    }
     return 0;
 }
 
 int UdpDatagramSocket::open_bound(const sockaddr_storage& addr, socklen_t addr_len) {
-    const int fd = create_bound_socket(addr, addr_len, false);
-    if (fd < 0) {
-        return 1;
-    }
-    close();
-    fd_.store(fd);
-    return 0;
-}
-
-int UdpDatagramSocket::rebind(const sockaddr_storage& addr, socklen_t addr_len) {
-    close();
+    std::unique_lock lock(fd_mutex_);
+    // Bind to the exact candidate address/port to ensure pair probes use true path endpoints.
     const int fd = create_bound_socket(addr, addr_len, true);
     if (fd < 0) {
         return 1;
     }
-    fd_.store(fd);
+    const int old_fd = fd_.exchange(fd);
+    if (old_fd >= 0) {
+        ::close(old_fd);
+    }
+    return 0;
+}
+
+int UdpDatagramSocket::rebind(const sockaddr_storage& addr, socklen_t addr_len) {
+    std::unique_lock lock(fd_mutex_);
+    const int fd = create_bound_socket(addr, addr_len, true);
+    if (fd < 0) {
+        return 1;
+    }
+    const int old_fd = fd_.exchange(fd);
+    if (old_fd >= 0) {
+        ::close(old_fd);
+    }
     return 0;
 }
 
 void UdpDatagramSocket::close() {
+    std::unique_lock lock(fd_mutex_);
     const int fd = fd_.exchange(-1);
     if (fd >= 0) {
         ::close(fd);
@@ -106,16 +118,24 @@ void UdpDatagramSocket::close() {
 }
 
 int UdpDatagramSocket::send_to(const sockaddr_storage& addr, socklen_t addr_len, const void* data, std::size_t size) const {
-    const int fd = fd_.load();
-    if (fd < 0 || !data || size == 0) {
+    std::shared_lock lock(fd_mutex_);
+    if (!data || size == 0) {
+        return -1;
+    }
+    int fd = fd_.load();
+    if (fd < 0) {
         return -1;
     }
     return static_cast<int>(::sendto(fd, data, size, 0, reinterpret_cast<const sockaddr*>(&addr), addr_len));
 }
 
 int UdpDatagramSocket::receive(void* data, std::size_t size, sockaddr_storage& addr, socklen_t& addr_len) const {
-    const int fd = fd_.load();
-    if (fd < 0 || !data || size == 0) {
+    std::shared_lock lock(fd_mutex_);
+    if (!data || size == 0) {
+        return -1;
+    }
+    int fd = fd_.load();
+    if (fd < 0) {
         return -1;
     }
     addr_len = sizeof(addr);

@@ -122,6 +122,8 @@ void apply_audio_config(const std::unordered_map<std::string, std::string>& valu
     audio.resend_max_frames = parse_int(values, "audio.resend_max_frames", audio.resend_max_frames);
     audio.redundancy = parse_int(values, "audio.redundancy", audio.redundancy);
     audio.dynamic_resampling = values.count("audio.dynamic_resampling") ? parse_bool(values.at("audio.dynamic_resampling")) : audio.dynamic_resampling;
+    audio.codec = parse_string(values, "audio.codec", audio.codec);
+    audio.device_io_enabled = values.count("audio.device_io_enabled") ? parse_bool(values.at("audio.device_io_enabled")) : audio.device_io_enabled;
     audio.tone_hz = parse_double(values, "audio.tone_hz", audio.tone_hz);
     audio.tone_level = parse_double(values, "audio.tone_level", audio.tone_level);
     audio.source_id = parse_int(values, "audio.source_id", audio.source_id);

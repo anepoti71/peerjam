@@ -12,6 +12,7 @@
 #include <atomic>
 #include <chrono>
 #include <memory>
+#include <mutex>
 #include <optional>
 #include <thread>
 
@@ -41,6 +42,8 @@ class AooPeerClient {
     void try_fetch_remote_candidates(const std::string& peer_user);
     std::shared_ptr<RemoteEndpoint> load_remote_endpoint() const;
     bool apply_selected_path(const PathSelectionReport& report);
+    void elect_timing_authority(const std::string& remote_user);
+    std::string timing_state_json() const;
     void handle_client_event(const aoo_event* event);
     static std::uint64_t session_token_for_group(const std::string& group);
     int run_qualification(bool include_audio);
@@ -66,6 +69,9 @@ class AooPeerClient {
     bool remote_candidates_fetched_ {false};
     std::chrono::steady_clock::time_point next_candidate_fetch_at_ {};
     std::uint64_t session_token_ {};
+    mutable std::mutex timing_mutex_;
+    std::string timing_role_ {"unknown"};
+    std::string timing_master_user_ {"unknown"};
 };
 
 }  // namespace peerjam
