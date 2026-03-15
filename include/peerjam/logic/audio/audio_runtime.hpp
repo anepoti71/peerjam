@@ -7,6 +7,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <memory>
 #include <vector>
 
 namespace peerjam {
@@ -24,15 +25,19 @@ class AudioRuntime {
     AudioRuntime(const AudioRuntime&) = delete;
     AudioRuntime& operator=(const AudioRuntime&) = delete;
 
-    int setup(const UdpDatagramSocket& socket, const RemoteEndpoint& endpoint);
+    void set_options(const AudioOptions& options) {
+        options_ = options;
+        tracker_.set_options(options);
+    }
+    int setup(const UdpDatagramSocket& socket, const std::shared_ptr<RemoteEndpoint>* endpoint_ref);
     void teardown();
-    bool handle_datagram(const std::uint8_t* data, std::size_t size, const RemoteEndpoint& endpoint);
+    bool handle_datagram(const std::uint8_t* data, std::size_t size);
     AudioStreamReport run(TickHook tick_hook);
 
   private:
     struct ReplyContext {
         const UdpDatagramSocket* socket {};
-        RemoteEndpoint endpoint;
+        const std::shared_ptr<RemoteEndpoint>* endpoint_ref {};
     };
 
     static int32_t reply_callback(void* user, const char* data, int32_t size);

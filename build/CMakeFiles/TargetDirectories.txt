@@ -1,7 +1,0 @@
-/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/build/CMakeFiles/oscpack.dir
-/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/build/CMakeFiles/aoo.dir
-/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/build/CMakeFiles/peerjam_measure.dir
-/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/build/CMakeFiles/pj-signal-server.dir
-/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/build/CMakeFiles/pj-peer-probe.dir
-/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/build/CMakeFiles/edit_cache.dir
-/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/build/CMakeFiles/rebuild_cache.dir

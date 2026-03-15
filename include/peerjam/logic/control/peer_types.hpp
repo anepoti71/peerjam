@@ -1,30 +1,49 @@
 #pragma once
 
 #include "peerjam/logic/audio/audio_stream.hpp"
+#include "peerjam/logic/probe/recommendation_policy_options.hpp"
 
 #include <string>
 #include <sys/socket.h>
 
 namespace peerjam {
 
+struct LoggingOptions {
+    bool enabled {};
+    std::string level;
+    std::string sink;
+    std::string file_path;
+};
+
 struct PeerOptions {
     std::string server_host;
-    int server_port {10999};
+    int server_port {};
+    int candidate_exchange_port {};
     std::string group;
     std::string group_password;
     std::string user;
     std::string user_password;
     std::string stun_host;
-    int stun_port {3478};
-    int udp_port {12000};
-    int duration_seconds {10};
-    double interval_ms {5.0};
-    int payload_bytes {128};
-    int warmup_packets {20};
-    int path_reprobe_interval_ms {3000};
-    double path_switch_margin_score {1.0};
-    int path_switch_consecutive_wins {2};
+    int stun_port {};
+    int udp_port {};
+    int duration_seconds {};
+    double interval_ms {};
+    int payload_bytes {};
+    int warmup_packets {};
+    int path_reprobe_interval_ms {};
+    double path_switch_margin_score {};
+    int path_switch_consecutive_wins {};
+    std::string session_profile_in;
+    std::string session_profile_out;
+    LoggingOptions logging;
+    RecommendationPolicyOptions recommendation;
     AudioOptions audio;
+};
+
+struct ServerOptions {
+    int port {};
+    int candidate_exchange_port {};
+    LoggingOptions logging;
 };
 
 struct RemoteEndpoint {

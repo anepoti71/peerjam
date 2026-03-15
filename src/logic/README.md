@@ -7,6 +7,7 @@ This folder contains the latency-sensitive domain logic, split by responsibility
   - signaling client coordination
   - peer orchestration
   - top-level run loop
+  - network qualification workflow shared by tester and peer runtime
 
 - `transport`
   - UDP socket ownership
@@ -15,11 +16,13 @@ This folder contains the latency-sensitive domain logic, split by responsibility
 
 - `network`
   - candidate gathering
+  - full candidate exchange through signaling
   - STUN server-reflexive discovery
   - candidate-pair probe windows
   - path scoring
   - active path selection
-  - future path switching policy
+  - background reprobe and hysteresis-based switching policy
+  - selected-path adoption for the live transport/audio path
 
 - `probe`
   - probe packet wire format

@@ -17,13 +17,13 @@ AudioRuntime::~AudioRuntime() {
     teardown();
 }
 
-int AudioRuntime::setup(const UdpDatagramSocket& socket, const RemoteEndpoint& endpoint) {
+int AudioRuntime::setup(const UdpDatagramSocket& socket, const std::shared_ptr<RemoteEndpoint>* endpoint_ref) {
     if (options_.seconds <= 0) {
         return 0;
     }
 
     reply_context_.socket = &socket;
-    reply_context_.endpoint = endpoint;
+    reply_context_.endpoint_ref = endpoint_ref;
 
     source_ = aoo_source_new(options_.source_id);
     sink_ = aoo_sink_new(options_.sink_id);
@@ -93,7 +93,7 @@ void AudioRuntime::teardown() {
     }
 }
 
-bool AudioRuntime::handle_datagram(const std::uint8_t* data, std::size_t size, const RemoteEndpoint&) {
+bool AudioRuntime::handle_datagram(const std::uint8_t* data, std::size_t size) {
     if (!source_ || !sink_) {
         return false;
     }
@@ -135,11 +135,11 @@ AudioStreamReport AudioRuntime::run(TickHook tick_hook) {
             }
             for (int ch = 0; ch < options_.channels; ++ch) {
                 source_channels_[static_cast<std::size_t>(ch)][static_cast<std::size_t>(i)] = sample;
-                sink_channels_[static_cast<std::size_t>(ch)][static_cast<std::size_t>(i)] = 0.0f;
             }
         }
 
         const auto ntp_now = aoo_osctime_get();
+        const auto steady_now_ns = now_ns();
         aoo_source_process(source_, reinterpret_cast<const aoo_sample**>(source_channel_ptrs_.data()), options_.frame_samples, ntp_now);
         aoo_source_send(source_);
         aoo_sink_process(sink_, reinterpret_cast<aoo_sample**>(sink_channel_ptrs_.data()), options_.frame_samples, ntp_now);
@@ -151,11 +151,11 @@ AudioStreamReport AudioRuntime::run(TickHook tick_hook) {
                     sink_channels_[static_cast<std::size_t>(ch)][static_cast<std::size_t>(i)];
             }
         }
-        tracker_.on_render_block(sink_interleaved_.data(), options_.frame_samples, options_.channels, now_ns());
+        tracker_.on_render_block(sink_interleaved_.data(), options_.frame_samples, options_.channels, steady_now_ns);
 
         float buffer_fill = 0.0f;
         if (aoo_sink_get_sourceoption(sink_, &reply_context_, options_.source_id, aoo_opt_buffer_fill_ratio, &buffer_fill, sizeof(buffer_fill)) > 0) {
-            tracker_.on_buffer_fill(buffer_fill, now_ns());
+            tracker_.on_buffer_fill(buffer_fill, steady_now_ns);
         }
 
         aoo_source_handle_events(source_, &AudioRuntime::source_event_handler, this);
@@ -173,10 +173,14 @@ AudioStreamReport AudioRuntime::run(TickHook tick_hook) {
 
 int32_t AudioRuntime::reply_callback(void* user, const char* data, int32_t size) {
     auto* context = static_cast<ReplyContext*>(user);
-    if (!context || !context->socket) {
+    if (!context || !context->socket || !context->endpoint_ref) {
         return -1;
     }
-    return context->socket->send_to(context->endpoint.addr, context->endpoint.addr_len, data, static_cast<std::size_t>(size));
+    const auto endpoint = std::atomic_load(context->endpoint_ref);
+    if (!endpoint) {
+        return -1;
+    }
+    return context->socket->send_to(endpoint->addr, endpoint->addr_len, data, static_cast<std::size_t>(size));
 }
 
 int32_t AudioRuntime::source_event_handler(void* user, const aoo_event** events, int32_t count) {

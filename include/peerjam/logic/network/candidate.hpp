@@ -43,6 +43,8 @@ struct CandidatePairMeasurement {
 struct PathSwitchEvent {
     std::string from_local_foundation;
     std::string to_local_foundation;
+    std::string from_remote_foundation;
+    std::string to_remote_foundation;
     double previous_score {};
     double next_score {};
 };

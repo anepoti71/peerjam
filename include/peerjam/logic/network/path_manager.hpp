@@ -5,7 +5,6 @@
 #include "peerjam/logic/network/path_probe_engine.hpp"
 #include "peerjam/logic/network/path_scorer.hpp"
 
-#include <atomic>
 #include <mutex>
 #include <optional>
 #include <vector>
@@ -18,7 +17,6 @@ class PathManager {
 
     void set_local_candidates(std::vector<NetworkCandidate> candidates);
     void set_remote_candidates(std::vector<NetworkCandidate> candidates);
-    [[nodiscard]] const std::optional<NetworkCandidate>& active_remote_candidate() const { return active_remote_candidate_; }
     [[nodiscard]] const std::vector<NetworkCandidate>& local_candidates() const { return local_candidates_; }
     [[nodiscard]] const std::vector<NetworkCandidate>& remote_candidates() const { return remote_candidates_; }
     PathSelectionReport measure_and_select_active_path(std::uint64_t session_token);
@@ -42,7 +40,7 @@ class PathManager {
     int switch_count_ {};
     int pending_win_count_ {};
     std::optional<NetworkCandidate> pending_local_candidate_;
-    std::optional<PathScore> pending_score_;
+    std::optional<NetworkCandidate> pending_remote_candidate_;
     double switch_margin_score_ {};
     int switch_consecutive_wins_ {};
     CandidateProbeEngine probe_engine_;

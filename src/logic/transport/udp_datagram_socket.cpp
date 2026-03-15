@@ -34,71 +34,92 @@ bool make_nonblocking(int fd) {
 
 }  // namespace
 
+int UdpDatagramSocket::create_bound_socket(const sockaddr_storage& addr, socklen_t addr_len, bool preserve_port) {
+    const int fd = make_socket(addr.ss_family);
+    if (fd < 0) {
+        return -1;
+    }
+    apply_reuse_flags(fd);
+
+    sockaddr_storage bind_addr = addr;
+    if (!preserve_port) {
+        if (bind_addr.ss_family == AF_INET) {
+            reinterpret_cast<sockaddr_in*>(&bind_addr)->sin_port = 0;
+        } else if (bind_addr.ss_family == AF_INET6) {
+            reinterpret_cast<sockaddr_in6*>(&bind_addr)->sin6_port = 0;
+        }
+    }
+
+    if (::bind(fd, reinterpret_cast<sockaddr*>(&bind_addr), addr_len) < 0) {
+        ::close(fd);
+        return -1;
+    }
+
+    if (!make_nonblocking(fd)) {
+        ::close(fd);
+        return -1;
+    }
+
+    return fd;
+}
+
 int UdpDatagramSocket::open(int port) {
-    fd_ = make_socket(AF_INET);
-    if (fd_ < 0) {
+    sockaddr_storage addr {};
+    auto* in = reinterpret_cast<sockaddr_in*>(&addr);
+    in->sin_family = AF_INET;
+    in->sin_port = htons(static_cast<std::uint16_t>(port));
+    in->sin_addr.s_addr = htonl(INADDR_ANY);
+    const int fd = create_bound_socket(addr, sizeof(sockaddr_in), true);
+    if (fd < 0) {
         return 1;
     }
-    apply_reuse_flags(fd_);
-
-    sockaddr_in addr {};
-    addr.sin_family = AF_INET;
-    addr.sin_port = htons(static_cast<std::uint16_t>(port));
-    addr.sin_addr.s_addr = htonl(INADDR_ANY);
-    if (::bind(fd_, reinterpret_cast<sockaddr*>(&addr), sizeof(addr)) < 0) {
-        return 1;
-    }
-
-    if (!make_nonblocking(fd_)) {
-        return 1;
-    }
-
+    close();
+    fd_.store(fd);
     return 0;
 }
 
 int UdpDatagramSocket::open_bound(const sockaddr_storage& addr, socklen_t addr_len) {
-    fd_ = make_socket(addr.ss_family);
-    if (fd_ < 0) {
+    const int fd = create_bound_socket(addr, addr_len, false);
+    if (fd < 0) {
         return 1;
     }
-    apply_reuse_flags(fd_);
+    close();
+    fd_.store(fd);
+    return 0;
+}
 
-    sockaddr_storage bind_addr = addr;
-    if (bind_addr.ss_family == AF_INET) {
-        reinterpret_cast<sockaddr_in*>(&bind_addr)->sin_port = 0;
-    } else if (bind_addr.ss_family == AF_INET6) {
-        reinterpret_cast<sockaddr_in6*>(&bind_addr)->sin6_port = 0;
-    }
-
-    if (::bind(fd_, reinterpret_cast<sockaddr*>(&bind_addr), addr_len) < 0) {
+int UdpDatagramSocket::rebind(const sockaddr_storage& addr, socklen_t addr_len) {
+    close();
+    const int fd = create_bound_socket(addr, addr_len, true);
+    if (fd < 0) {
         return 1;
     }
-    if (!make_nonblocking(fd_)) {
-        return 1;
-    }
+    fd_.store(fd);
     return 0;
 }
 
 void UdpDatagramSocket::close() {
-    if (fd_ >= 0) {
-        ::close(fd_);
-        fd_ = -1;
+    const int fd = fd_.exchange(-1);
+    if (fd >= 0) {
+        ::close(fd);
     }
 }
 
 int UdpDatagramSocket::send_to(const sockaddr_storage& addr, socklen_t addr_len, const void* data, std::size_t size) const {
-    if (fd_ < 0 || !data || size == 0) {
+    const int fd = fd_.load();
+    if (fd < 0 || !data || size == 0) {
         return -1;
     }
-    return static_cast<int>(::sendto(fd_, data, size, 0, reinterpret_cast<const sockaddr*>(&addr), addr_len));
+    return static_cast<int>(::sendto(fd, data, size, 0, reinterpret_cast<const sockaddr*>(&addr), addr_len));
 }
 
 int UdpDatagramSocket::receive(void* data, std::size_t size, sockaddr_storage& addr, socklen_t& addr_len) const {
-    if (fd_ < 0 || !data || size == 0) {
+    const int fd = fd_.load();
+    if (fd < 0 || !data || size == 0) {
         return -1;
     }
     addr_len = sizeof(addr);
-    return static_cast<int>(::recvfrom(fd_, data, size, 0, reinterpret_cast<sockaddr*>(&addr), &addr_len));
+    return static_cast<int>(::recvfrom(fd, data, size, 0, reinterpret_cast<sockaddr*>(&addr), &addr_len));
 }
 
 std::string UdpDatagramSocket::address_to_string(const sockaddr_storage& addr) {

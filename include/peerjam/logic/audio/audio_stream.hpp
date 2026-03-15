@@ -9,21 +9,21 @@
 namespace peerjam {
 
 struct AudioOptions {
-    int seconds {0};
-    int sample_rate_hz {48000};
-    int frame_samples {128};
-    int channels {2};
-    int source_buffer_ms {3};
-    int sink_buffer_ms {5};
-    int packetsize {512};
-    int resend_buffer_ms {30};
-    int resend_limit {3};
-    int resend_interval_ms {3};
-    int resend_max_frames {4};
-    int redundancy {1};
+    int seconds {};
+    int sample_rate_hz {};
+    int frame_samples {};
+    int channels {};
+    int source_buffer_ms {};
+    int sink_buffer_ms {};
+    int packetsize {};
+    int resend_buffer_ms {};
+    int resend_limit {};
+    int resend_interval_ms {};
+    int resend_max_frames {};
+    int redundancy {};
     bool dynamic_resampling {true};
-    double tone_hz {440.0};
-    double tone_level {0.15};
+    double tone_hz {};
+    double tone_level {};
     int source_id {1};
     int sink_id {1};
 };
@@ -50,6 +50,7 @@ struct AudioStreamReport {
 class AudioStreamTracker {
   public:
     explicit AudioStreamTracker(const AudioOptions& options);
+    void set_options(const AudioOptions& options) { options_ = options; }
 
     void on_render_block(const float* interleaved, int frames, int channels, std::uint64_t steady_now_ns);
     void on_buffer_fill(float ratio, std::uint64_t steady_now_ns);

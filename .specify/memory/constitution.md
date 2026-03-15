@@ -1,50 +1,219 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+<!--
+  Sync Impact Report
+  ==================
+  Version change: (unfilled template) → 1.0.0
+  Source: Reconciled from speckit/speckit.constitution (now removed)
+
+  Added sections:
+  - Core Principles (13 principles, expanded from 5-slot template)
+  - Required Acceptance Criteria
+  - Change Policy
+  - Governance
+
+  Modified principles: N/A (initial fill)
+  Removed sections: N/A
+
+  Templates status:
+  - .specify/templates/plan-template.md       — ✅ no changes needed
+  - .specify/templates/spec-template.md       — ✅ no changes needed
+  - .specify/templates/tasks-template.md      — ✅ no changes needed
+  - .specify/templates/agent-file-template.md — ✅ no changes needed
+
+  Deferred TODOs: none
+-->
+
+# PeerJam Native Constitution
+
+## Purpose
+
+PeerJam Native exists to enable real-time remote music collaboration over the public internet.
+The system is not a general media-streaming platform. Every architectural decision MUST be
+evaluated against the needs of live musical interaction: low one-way latency, stable rhythm,
+predictable synchronization, and graceful degradation under adverse network conditions.
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. Music First
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+The primary optimization target is interactive musical performance, not bulk throughput,
+archival quality, or conferencing convenience.
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+Required implications:
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+- Latency MUST be favored over feature breadth.
+- Designs that improve average quality while harming timing stability MUST be rejected.
+- Timing regressions MUST be treated as first-class failures.
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### II. Performance Is Mandatory
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+The implementation MUST prefer performant solutions in all latency-sensitive and
+throughput-sensitive paths.
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+Required implications:
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+- The hot path MUST avoid unnecessary heap allocation, copying, dynamic dispatch, and
+  generic abstraction overhead.
+- Domain boundaries MUST be explicit, but the implementation MUST remain data-oriented
+  and cache-conscious.
+- Runtime control loops MUST be bounded, measurable, and safe under sustained load.
+- Convenience abstractions are acceptable only outside critical transport, synchronization,
+  and audio-processing paths.
+- Candidate gathering, path scoring, and path switching policy MUST remain outside the
+  steady-state media processing path.
+- Background reprobe and switching decisions MUST execute asynchronously from the media
+  processing path.
+- Runtime configuration and logging MUST be externally configurable.
+- Production mode MUST support logging level `off` so normal operation can avoid avoidable
+  logging overhead.
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+### III. Direct Media Path by Default
+
+Media MUST flow peer-to-peer over UDP whenever a direct path is possible.
+
+Required implications:
+
+- Signaling infrastructure MAY assist discovery, NAT coordination, role assignment, and
+  session bootstrap.
+- Signaling infrastructure MUST NOT relay media by default.
+- Relay transport is an explicit fallback path, not the standard architecture.
+
+### IV. Public-Internet Reality
+
+The system MUST assume unmanaged networks with NAT, jitter, packet loss, path asymmetry,
+and route changes.
+
+Required implications:
+
+- All runtime control loops MUST tolerate imperfect clocks and unstable packet timing.
+- All latency claims MUST be framed against real internet paths, not just LAN behavior.
+- Path choice MUST account for stability, not latency alone.
+
+### V. Small Buffers, Controlled Adaptation
+
+The system MUST keep jitter buffers as small as practical while remaining stable.
+
+Required implications:
+
+- Buffer growth MUST be deliberate, measured, and reversible.
+- Sudden large latency increases are a failure mode, not a valid adaptation strategy.
+- Buffer adaptation MUST be driven by packet timing metrics and audible-risk thresholds.
+
+### VI. Continuous Synchronization
+
+Synchronization is a runtime system, not a one-time handshake.
+
+Required implications:
+
+- Clock offset, drift, buffer fill, and playout timing MUST be monitored continuously.
+- Long sessions MUST remain stable without manual resets.
+- Drift correction MUST be smooth enough to avoid audible artifacts.
+
+### VII. Gentle Drift Correction
+
+Drift MUST be corrected by small continuous rate changes and fractional resampling,
+never by abrupt time jumps in normal operation.
+
+Required implications:
+
+- Preferred playback-rate correction range is near-unity (e.g., `0.9999–1.0001`).
+- Sample drops, silence insertion, and hard jumps are emergency recovery tools only.
+- Drift-control logic MUST prioritize inaudibility.
+
+### VIII. Measurable State
+
+Every critical transport and synchronization mechanism MUST expose metrics.
+
+Required implications:
+
+- Path selection MUST produce RTT, jitter, loss, and stability scores.
+- Audio runtime MUST expose buffer fill, reorder, resend, underrun, and drift telemetry.
+- The system MUST be debuggable without guesswork.
+
+### IX. Explicit Timing Authority
+
+Even in a P2P media topology, there MUST be a well-defined timing reference.
+
+Required implications:
+
+- Each session MUST assign a master timing authority during setup.
+- Followers MUST adapt relative to that reference.
+- The master role MUST be visible in session state and transferable if needed.
+
+### X. PCM First, Codec Optional
+
+The default streaming mode is uncompressed PCM unless measured path conditions justify
+compression.
+
+Required implications:
+
+- PCM is the baseline for best-case performance and minimum codec delay.
+- Low-delay Opus is a conditional fallback for constrained bandwidth or unstable links.
+- Codec choice MUST remain a runtime policy decision, not a compile-time assumption.
+
+### XI. Layer Separation
+
+Transport, path management, synchronization, jitter handling, audio framing, and device I/O
+MUST remain separable.
+
+Required implications:
+
+- No layer MAY hide timing state that another layer requires for adaptation.
+- Cross-layer coupling is allowed only through explicit interfaces and metrics.
+- The implementation MUST support replacing one layer without rewriting the entire system.
+
+### XII. Geographic Truthfulness
+
+The system MUST NOT promise sub-30 ms one-way interaction beyond plausible physical limits.
+
+Required implications:
+
+- Approximate fiber propagation cost MUST be treated as a hard budget component.
+- Regional proximity is a prerequisite for best musical results.
+- Recommendations MUST distinguish transport quality from geography-imposed delay.
+
+### XIII. Fail Safe, Not Fake
+
+When conditions do not support rhythm-sensitive collaboration, the system MUST say so
+explicitly.
+
+Required implications:
+
+- Reports MUST classify paths as ready, marginal, or not ready.
+- The system MUST NOT conceal severe instability behind oversized buffers.
+- Operator guidance MUST prefer truth over optimism.
+
+## Required Acceptance Criteria
+
+Any implementation or change is acceptable only if it preserves these invariants:
+
+- P2P UDP media remains the primary path.
+- Performance-sensitive paths remain allocation-conscious and low-overhead.
+- Runtime metrics remain available for path, transport, and synchronization state.
+- Clock drift is managed continuously with smooth correction.
+- Buffering remains intentionally small and measurable.
+- The architecture remains viable on real public-internet links.
+
+## Change Policy
+
+Changes that violate this constitution require an explicit architecture decision record (ADR)
+stored under `.specify/adr/` stating:
+
+- which principle is being bent or broken
+- why the alternative is necessary
+- what measurable downside is introduced
+- how the downside will be bounded or removed later
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+This constitution supersedes all other project practices. Amendments require:
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+1. A proposed ADR documenting the principle change and rationale.
+2. Version bump per semantic versioning rules:
+   - **MAJOR**: Backward-incompatible principle removals or redefinitions.
+   - **MINOR**: New principle or section added or materially expanded.
+   - **PATCH**: Clarifications, wording fixes, non-semantic refinements.
+
+All feature plans MUST include a Constitution Check gate verifying compliance with the
+principles above before Phase 0 research proceeds.
+
+**Version**: 1.0.0 | **Ratified**: 2026-03-15 | **Last Amended**: 2026-03-15

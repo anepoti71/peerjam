@@ -105,6 +105,8 @@ std::string PathSelectionReport::to_json() const {
         os << "{"
            << "\"from_local_foundation\":" << quote(switch_events[i].from_local_foundation) << ","
            << "\"to_local_foundation\":" << quote(switch_events[i].to_local_foundation) << ","
+           << "\"from_remote_foundation\":" << quote(switch_events[i].from_remote_foundation) << ","
+           << "\"to_remote_foundation\":" << quote(switch_events[i].to_remote_foundation) << ","
            << "\"previous_score\":" << switch_events[i].previous_score << ","
            << "\"next_score\":" << switch_events[i].next_score
            << "}";

@@ -10,6 +10,8 @@
 #include "peerjam/logic/transport/udp_datagram_socket.hpp"
 
 #include <atomic>
+#include <chrono>
+#include <memory>
 #include <optional>
 #include <thread>
 
@@ -21,6 +23,7 @@ class AooPeerClient {
     ~AooPeerClient();
 
     int run();
+    int run_network_test();
 
   private:
     static int32_t send_callback(void* user, const char* data, int32_t size, void* addr);
@@ -36,8 +39,13 @@ class AooPeerClient {
     bool wait_for_remote_peer();
     void publish_local_candidates();
     void try_fetch_remote_candidates(const std::string& peer_user);
+    std::shared_ptr<RemoteEndpoint> load_remote_endpoint() const;
+    bool apply_selected_path(const PathSelectionReport& report);
     void handle_client_event(const aoo_event* event);
     static std::uint64_t session_token_for_group(const std::string& group);
+    int run_qualification(bool include_audio);
+    void print_qualification_report(const PathSelectionReport& path_report, const MeasurementReport& probe_report) const;
+    void apply_input_session_profile();
 
     PeerOptions options_;
     UdpDatagramSocket socket_;
@@ -53,7 +61,10 @@ class AooPeerClient {
     std::atomic<bool> receiver_running_ {false};
     std::atomic<bool> reprobe_running_ {false};
     std::atomic<bool> connected_ {false};
-    std::optional<RemoteEndpoint> remote_endpoint_;
+    std::shared_ptr<RemoteEndpoint> remote_endpoint_;
+    std::optional<NetworkCandidate> applied_local_candidate_;
+    bool remote_candidates_fetched_ {false};
+    std::chrono::steady_clock::time_point next_candidate_fetch_at_ {};
     std::uint64_t session_token_ {};
 };
 

@@ -7,6 +7,8 @@
 #include <unordered_map>
 #include <vector>
 
+#include "peerjam/logic/probe/recommendation_policy_options.hpp"
+
 namespace peerjam {
 
 struct SummaryStats {
@@ -24,6 +26,8 @@ struct Recommendation {
     int frame_samples {};
     double initial_buffer_ms {};
     std::string rationale;
+
+    std::string to_json() const;
 };
 
 struct MeasurementReport {
@@ -47,7 +51,7 @@ struct MeasurementReport {
 
 class MeasurementTracker {
   public:
-    explicit MeasurementTracker(std::uint32_t expected_packets);
+    MeasurementTracker(std::uint32_t expected_packets, RecommendationPolicyOptions policy);
 
     void mark_sent(std::uint32_t sequence, std::uint64_t sent_at_ns);
     void on_probe_received(std::uint32_t sequence, std::uint64_t arrival_ns);
@@ -60,6 +64,7 @@ class MeasurementTracker {
     Recommendation recommend(const MeasurementReport& report) const;
 
     std::uint32_t expected_packets_ {};
+    RecommendationPolicyOptions policy_;
     bool direct_path_established_ {false};
     std::unordered_map<std::uint32_t, std::uint64_t> sent_at_ns_;
     std::vector<double> rtt_ms_;

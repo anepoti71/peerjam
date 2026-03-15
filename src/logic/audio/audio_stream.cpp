@@ -1,6 +1,6 @@
+#include "peerjam/common/stats_utils.hpp"
 #include "peerjam/logic/audio/audio_stream.hpp"
 
-#include <algorithm>
 #include <cmath>
 #include <iomanip>
 #include <numeric>
@@ -8,16 +8,6 @@
 
 namespace peerjam {
 namespace {
-
-double percentile(const std::vector<double>& values, double p) {
-    if (values.empty()) {
-        return 0.0;
-    }
-    auto ordered = values;
-    std::sort(ordered.begin(), ordered.end());
-    const auto rank = static_cast<std::size_t>(std::ceil((p / 100.0) * ordered.size()));
-    return ordered[std::min<std::size_t>(ordered.size() - 1, std::max<std::size_t>(rank, 1) - 1)];
-}
 
 double estimate_drift_ppm(const std::vector<double>& time_s, const std::vector<double>& ratio, int sink_buffer_ms) {
     if (time_s.size() < 2 || ratio.size() != time_s.size() || sink_buffer_ms <= 0) {

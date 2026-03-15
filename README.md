@@ -2,6 +2,25 @@
 
 PeerJam Native is the C++ implementation path for remote live-music transport analysis.
 
+## Governance
+
+Project governance lives under [`.specify/`](/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/.specify).
+That folder is the source of truth for architecture and change policy:
+
+- constitution: [constitution.md](/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/.specify/memory/constitution.md)
+- layer specification: [layer-specification.md](/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/.specify/memory/layer-specification.md)
+- verification baseline: [verification.md](/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/.specify/memory/verification.md)
+- metrics guidance: [metrics-spec.md](/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/.specify/memory/metrics-spec.md)
+- architecture decisions: [ADR README](/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/.specify/adr/README.md)
+
+All future architecture and implementation changes should be evaluated against `.specify/`,
+not the removed Speckit layout.
+
+Operational step-by-step usage is documented in [HOWTO.md](/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/HOWTO.md).
+Local operator start/stop helpers are available in the top-level [Makefile](/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/Makefile).
+
+Runtime configuration files live under [resources/config](/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/resources/config).
+
 It reuses:
 
 - SonoBus/AOO for transport:
@@ -19,7 +38,7 @@ Domain logic now lives under `src/logic` and `include/peerjam/logic`:
 
 - `control`: signaling and peer orchestration
 - `transport`: UDP socket and datagram path
-- `network`: candidate gathering and path selection
+- `network`: candidate gathering, candidate exchange, and path selection
 - `probe`: probe packets, measurement, readiness logic
 - `audio`: AOO PCM runtime and stream telemetry
 
@@ -32,10 +51,12 @@ Current network capabilities:
 - optional STUN server-reflexive candidate gathering
 - full local candidate publication through signaling
 - remote candidate retrieval through signaling
+- signaling-side candidate exchange on `server_port + 1`
 - per candidate-pair probe windows
 - path scoring and active-path selection
 - background reprobe
 - hysteresis-based path switching decisions
+- active transport/audio adoption of the selected candidate pair
 - active-path reporting
 
 ## Why C++ instead of Rust
@@ -61,6 +82,21 @@ Rust would be reasonable later for orchestration or control layers, but not as t
 6. Optionally runs a real PCM streaming phase over AOO source/sink.
 7. Produces recommended settings for a target `<30 ms` one-way music workflow.
 
+## Network tester
+
+Use `pj-net-test` as a preflight qualifier before starting the full peer/audio session.
+It reuses the same signaling, candidate discovery, candidate exchange, path probing, and
+scoring logic as `pj-peer-probe`, but stops at network qualification and emits a
+machine-readable `session_profile`.
+
+Build output includes:
+- `pj-signal-server`
+- `pj-net-test`
+- `pj-peer-probe`
+- `pj-net-test` can persist a tested profile with `--profile-out FILE`
+- `pj-peer-probe` can consume it with `--profile-in FILE`
+- all binaries can load a config file with `--config FILE`
+
 ## Build
 
 ```bash
@@ -74,13 +110,47 @@ cmake --build build
 Start a public signaling server on a machine reachable from both sites:
 
 ```bash
-./build/pj-signal-server --port 10999
+./build/pj-signal-server --config resources/config/signal-server.conf
 ```
+
+This starts:
+- AOO signaling on TCP/UDP `10999`
+- candidate exchange on TCP `11000`
+
+On site A:
+
+```bash
+./build/pj-net-test \
+  --config resources/config/net-test.conf \
+  --server-host PUBLIC_SERVER_IP \
+  --server-port 10999 \
+  --group duo-test \
+  --user alice \
+  --udp-port 12000
+```
+
+On site B:
+
+```bash
+./build/pj-net-test \
+  --config resources/config/net-test.conf \
+  --server-host PUBLIC_SERVER_IP \
+  --server-port 10999 \
+  --group duo-test \
+  --user bob \
+  --udp-port 12000
+```
+
+After qualification, run the full peer session if the returned `session_profile.status`
+is `ready` or an acceptable `marginal`.
+
+## Peer runtime
 
 On site A:
 
 ```bash
 ./build/pj-peer-probe \
+  --config resources/config/peer-probe.conf \
   --server-host PUBLIC_SERVER_IP \
   --server-port 10999 \
   --group duo-test \
@@ -112,6 +182,7 @@ The peer prints a JSON report with:
 - recommended codec mode
 - recommended initial network buffer
 - feasibility for sub-30 ms live music
+- `session_profile` for the recommended runtime settings
 
 If `--audio-seconds` is set, the report also includes:
 

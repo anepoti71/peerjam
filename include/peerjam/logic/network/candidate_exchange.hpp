@@ -2,8 +2,10 @@
 
 #include "peerjam/logic/network/candidate.hpp"
 
+#include <atomic>
 #include <optional>
 #include <string>
+#include <thread>
 #include <vector>
 
 namespace peerjam {
@@ -39,8 +41,9 @@ class CandidateExchangeServer {
     void run();
     void handle_client(int fd);
 
-    int listen_fd_ {-1};
-    bool running_ {false};
+    std::atomic<int> listen_fd_ {-1};
+    std::atomic<bool> running_ {false};
+    std::thread thread_;
 };
 
 }  // namespace peerjam

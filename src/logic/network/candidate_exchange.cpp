@@ -1,11 +1,14 @@
 #include "peerjam/logic/network/candidate_exchange.hpp"
 
 #include <arpa/inet.h>
+#include <cerrno>
 #include <netdb.h>
 #include <netinet/in.h>
+#include <poll.h>
 #include <sys/socket.h>
 #include <unistd.h>
 
+#include <chrono>
 #include <cstring>
 #include <map>
 #include <mutex>
@@ -15,11 +18,6 @@
 
 namespace peerjam {
 namespace {
-
-struct PublishedCandidateSet {
-    std::string user;
-    std::vector<NetworkCandidate> candidates;
-};
 
 std::mutex g_store_mutex;
 std::map<std::string, std::map<std::string, std::vector<NetworkCandidate>>> g_candidate_store;
@@ -56,6 +54,11 @@ bool connect_to_host(const std::string& host, int port, int& fd) {
     if (fd < 0) {
         return false;
     }
+    timeval timeout {};
+    timeout.tv_sec = 0;
+    timeout.tv_usec = 250000;
+    ::setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
+    ::setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout));
     if (::connect(fd, reinterpret_cast<const sockaddr*>(&addr), addr_len) < 0) {
         ::close(fd);
         fd = -1;
@@ -84,6 +87,9 @@ bool read_line(int fd, std::string& line) {
     while (true) {
         const auto n = ::recv(fd, &ch, 1, 0);
         if (n <= 0) {
+            if (errno == EAGAIN || errno == EWOULDBLOCK) {
+                return false;
+            }
             return !line.empty();
         }
         if (ch == '\n') {
@@ -269,34 +275,59 @@ CandidateExchangeServer::~CandidateExchangeServer() {
 }
 
 bool CandidateExchangeServer::start(int port) {
-    listen_fd_ = make_listen_socket(port);
-    if (listen_fd_ < 0) {
+    const int fd = make_listen_socket(port);
+    if (fd < 0) {
         return false;
     }
+    listen_fd_.store(fd);
     running_ = true;
-    std::thread([this]() { run(); }).detach();
+    thread_ = std::thread([this]() { run(); });
     return true;
 }
 
 void CandidateExchangeServer::stop() {
     running_ = false;
-    if (listen_fd_ >= 0) {
-        ::close(listen_fd_);
-        listen_fd_ = -1;
+    const int fd = listen_fd_.exchange(-1);
+    if (fd >= 0) {
+        ::shutdown(fd, SHUT_RDWR);
+        ::close(fd);
+    }
+    if (thread_.joinable()) {
+        thread_.join();
     }
 }
 
 void CandidateExchangeServer::run() {
     while (running_) {
+        pollfd pfd {};
+        pfd.fd = listen_fd_.load();
+        pfd.events = POLLIN;
+        if (pfd.fd < 0) {
+            break;
+        }
+        const int poll_result = ::poll(&pfd, 1, 100);
+        if (poll_result <= 0) {
+            continue;
+        }
         sockaddr_storage addr {};
         socklen_t addr_len = sizeof(addr);
-        const int fd = ::accept(listen_fd_, reinterpret_cast<sockaddr*>(&addr), &addr_len);
+        const int listen_fd = listen_fd_.load();
+        if (listen_fd < 0) {
+            break;
+        }
+        const int fd = ::accept(listen_fd, reinterpret_cast<sockaddr*>(&addr), &addr_len);
         if (fd < 0) {
             if (running_) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(10));
                 continue;
             }
             break;
         }
+        timeval timeout {};
+        timeout.tv_sec = 0;
+        timeout.tv_usec = 250000;
+        ::setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
+        ::setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout));
         handle_client(fd);
         ::close(fd);
     }

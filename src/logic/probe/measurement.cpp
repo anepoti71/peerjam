@@ -1,22 +1,11 @@
+#include "peerjam/common/stats_utils.hpp"
 #include "peerjam/logic/probe/measurement.hpp"
 
-#include <algorithm>
-#include <cmath>
 #include <iomanip>
 #include <numeric>
 
 namespace peerjam {
 namespace {
-
-double percentile(const std::vector<double>& values, double p) {
-    if (values.empty()) {
-        return 0.0;
-    }
-    auto ordered = values;
-    std::sort(ordered.begin(), ordered.end());
-    const auto rank = static_cast<std::size_t>(std::ceil((p / 100.0) * ordered.size()));
-    return ordered[std::min<std::size_t>(ordered.size() - 1, std::max<std::size_t>(rank, 1) - 1)];
-}
 
 std::string quote(const std::string& value) {
     return "\"" + value + "\"";
@@ -24,8 +13,9 @@ std::string quote(const std::string& value) {
 
 }  // namespace
 
-MeasurementTracker::MeasurementTracker(std::uint32_t expected_packets)
-    : expected_packets_(expected_packets) {}
+MeasurementTracker::MeasurementTracker(std::uint32_t expected_packets, RecommendationPolicyOptions policy)
+    : expected_packets_(expected_packets)
+    , policy_(policy) {}
 
 void MeasurementTracker::mark_sent(std::uint32_t sequence, std::uint64_t sent_at_ns) {
     sent_at_ns_[sequence] = sent_at_ns;
@@ -98,48 +88,66 @@ Recommendation MeasurementTracker::recommend(const MeasurementReport& report) co
     if (!report.direct_path_established) {
         rec.status = "not_ready";
         rec.codec = "none";
-        rec.sample_rate_hz = 48000;
-        rec.frame_samples = 128;
+        rec.sample_rate_hz = policy_.sample_rate_hz;
+        rec.frame_samples = policy_.fallback_frame_samples;
         rec.initial_buffer_ms = 10.0;
         rec.rationale = "No direct peer path was established through AOO transport.";
         return rec;
     }
 
-    if (report.loss_percent > 1.0 || one_way_p95 > 30.0 || jitter_p95 > 5.0) {
+    if (report.loss_percent > policy_.not_ready_loss_percent
+        || one_way_p95 > policy_.not_ready_one_way_p95_ms
+        || jitter_p95 > policy_.not_ready_jitter_p95_ms) {
         rec.status = "not_ready";
         rec.codec = "opus-lowdelay";
-        rec.sample_rate_hz = 48000;
-        rec.frame_samples = 128;
-        rec.initial_buffer_ms = std::clamp(jitter_p95 * 2.5, 8.0, 20.0);
+        rec.sample_rate_hz = policy_.sample_rate_hz;
+        rec.frame_samples = policy_.fallback_frame_samples;
+        rec.initial_buffer_ms = std::clamp(
+            jitter_p95 * 2.5,
+            policy_.not_ready_buffer_min_ms,
+            policy_.not_ready_buffer_max_ms
+        );
         rec.rationale = "Current path is too unstable for sub-30 ms rhythm-sensitive music.";
         return rec;
     }
 
-    if (report.loss_percent <= 0.1 && one_way_p95 <= 12.0 && jitter_p95 <= 1.0) {
+    if (report.loss_percent <= policy_.aggressive_ready_loss_percent
+        && one_way_p95 <= policy_.aggressive_ready_one_way_p95_ms
+        && jitter_p95 <= policy_.aggressive_ready_jitter_p95_ms) {
         rec.status = "ready";
         rec.codec = "pcm";
-        rec.sample_rate_hz = 48000;
-        rec.frame_samples = 64;
-        rec.initial_buffer_ms = 5.0;
+        rec.sample_rate_hz = policy_.sample_rate_hz;
+        rec.frame_samples = policy_.aggressive_frame_samples;
+        rec.initial_buffer_ms = policy_.ready_buffer_min_ms;
         rec.rationale = "Path supports aggressive PCM-first settings similar to JackTrip-style low-overhead streaming.";
         return rec;
     }
 
-    if (report.loss_percent <= 0.5 && one_way_p95 <= 18.0 && jitter_p95 <= 2.5) {
+    if (report.loss_percent <= policy_.conservative_ready_loss_percent
+        && one_way_p95 <= policy_.conservative_ready_one_way_p95_ms
+        && jitter_p95 <= policy_.conservative_ready_jitter_p95_ms) {
         rec.status = "ready";
         rec.codec = "pcm-or-opus-lowdelay";
-        rec.sample_rate_hz = 48000;
-        rec.frame_samples = 128;
-        rec.initial_buffer_ms = std::clamp(jitter_p95 * 2.0, 5.0, 8.0);
+        rec.sample_rate_hz = policy_.sample_rate_hz;
+        rec.frame_samples = policy_.conservative_frame_samples;
+        rec.initial_buffer_ms = std::clamp(
+            jitter_p95 * 2.0,
+            policy_.ready_buffer_min_ms,
+            policy_.ready_buffer_max_ms
+        );
         rec.rationale = "Path is usable for music; start conservatively and prefer PCM on wired clean links.";
         return rec;
     }
 
     rec.status = "marginal";
     rec.codec = "opus-lowdelay";
-    rec.sample_rate_hz = 48000;
-    rec.frame_samples = 128;
-    rec.initial_buffer_ms = std::clamp(jitter_p95 * 2.2, 7.5, 12.0);
+    rec.sample_rate_hz = policy_.sample_rate_hz;
+    rec.frame_samples = policy_.fallback_frame_samples;
+    rec.initial_buffer_ms = std::clamp(
+        jitter_p95 * 2.2,
+        policy_.marginal_buffer_min_ms,
+        policy_.marginal_buffer_max_ms
+    );
     rec.rationale = "Path may work for some musical interaction, but timing margin is limited.";
     return rec;
 }
@@ -197,15 +205,21 @@ std::string MeasurementReport::to_json() const {
        << "  \"ingress_interval_ms\": " << fmt_stats(ingress_interval_ms) << ",\n"
        << "  \"ingress_jitter_ms\": " << fmt_stats(ingress_jitter_ms) << ",\n"
        << "  \"echo_jitter_ms\": " << fmt_stats(echo_jitter_ms) << ",\n"
-       << "  \"recommendation\": {\n"
-       << "    \"status\": " << quote(recommendation.status) << ",\n"
-       << "    \"codec\": " << quote(recommendation.codec) << ",\n"
-       << "    \"sample_rate_hz\": " << recommendation.sample_rate_hz << ",\n"
-       << "    \"frame_samples\": " << recommendation.frame_samples << ",\n"
-       << "    \"initial_buffer_ms\": " << recommendation.initial_buffer_ms << ",\n"
-       << "    \"rationale\": " << quote(recommendation.rationale) << "\n"
-       << "  }\n"
+       << "  \"recommendation\": " << recommendation.to_json() << "\n"
        << "}";
+    return os.str();
+}
+
+std::string Recommendation::to_json() const {
+    std::ostringstream os;
+    os << "{\n"
+       << "    \"status\": " << quote(status) << ",\n"
+       << "    \"codec\": " << quote(codec) << ",\n"
+       << "    \"sample_rate_hz\": " << sample_rate_hz << ",\n"
+       << "    \"frame_samples\": " << frame_samples << ",\n"
+       << "    \"initial_buffer_ms\": " << initial_buffer_ms << ",\n"
+       << "    \"rationale\": " << quote(rationale) << "\n"
+       << "  }";
     return os.str();
 }
 

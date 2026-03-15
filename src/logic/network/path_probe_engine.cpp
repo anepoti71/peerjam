@@ -70,7 +70,7 @@ MeasurementReport probe_pair(
     }
 
     MeasurementTracker tracker(static_cast<std::uint32_t>(
-        std::max(1.0, (options.duration_seconds * 1000.0) / options.interval_ms)));
+        std::max(1.0, (options.duration_seconds * 1000.0) / options.interval_ms)), options.recommendation);
 
     auto send_probe = [&](std::uint32_t sequence, bool warmup_only) {
         ProbePacket packet;

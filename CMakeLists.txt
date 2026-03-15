@@ -50,6 +50,10 @@ if(APPLE)
 endif()
 
 add_library(peerjam_measure STATIC
+  src/app/cli_options.cpp
+  src/app/config.cpp
+  src/app/session_profile.cpp
+  src/common/logger.cpp
   src/logic/audio/audio_stream.cpp
   src/logic/audio/audio_runtime.cpp
   src/logic/network/candidate.cpp
@@ -79,3 +83,6 @@ target_link_libraries(pj-signal-server PRIVATE aoo peerjam_measure)
 
 add_executable(pj-peer-probe src/peer_probe_main.cpp)
 target_link_libraries(pj-peer-probe PRIVATE peerjam_measure)
+
+add_executable(pj-net-test src/net_test_main.cpp)
+target_link_libraries(pj-net-test PRIVATE peerjam_measure)

@@ -105,22 +105,29 @@ PathSelectionReport PathManager::select_best_report(
         active_score_ = best->score;
         pending_win_count_ = 0;
         pending_local_candidate_.reset();
-        pending_score_.reset();
+        pending_remote_candidate_.reset();
     } else {
         const bool improvement = best->score.score + switch_margin_score_ < active_score_->score
-            && best->local.foundation != active_local_candidate_->foundation;
+            && (
+                best->local.foundation != active_local_candidate_->foundation
+                || best->remote.foundation != active_remote_candidate_->foundation
+            );
         if (improvement) {
-            if (pending_local_candidate_ && pending_local_candidate_->foundation == best->local.foundation) {
+            if (pending_local_candidate_ && pending_remote_candidate_
+                && pending_local_candidate_->foundation == best->local.foundation
+                && pending_remote_candidate_->foundation == best->remote.foundation) {
                 ++pending_win_count_;
             } else {
                 pending_local_candidate_ = best->local;
-                pending_score_ = best->score;
+                pending_remote_candidate_ = best->remote;
                 pending_win_count_ = 1;
             }
             if (pending_win_count_ >= switch_consecutive_wins_) {
                 switch_events_.push_back(PathSwitchEvent {
                     .from_local_foundation = active_local_candidate_->foundation,
                     .to_local_foundation = best->local.foundation,
+                    .from_remote_foundation = active_remote_candidate_->foundation,
+                    .to_remote_foundation = best->remote.foundation,
                     .previous_score = active_score_->score,
                     .next_score = best->score.score,
                 });
@@ -130,12 +137,12 @@ PathSelectionReport PathManager::select_best_report(
                 active_score_ = best->score;
                 pending_win_count_ = 0;
                 pending_local_candidate_.reset();
-                pending_score_.reset();
+                pending_remote_candidate_.reset();
             }
         } else {
             pending_win_count_ = 0;
             pending_local_candidate_.reset();
-            pending_score_.reset();
+            pending_remote_candidate_.reset();
         }
     }
 

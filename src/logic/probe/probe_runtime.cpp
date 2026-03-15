@@ -6,11 +6,16 @@
 #include <thread>
 
 namespace peerjam {
+namespace {
+
+constexpr std::uint32_t kMeasurementSequenceBase = 1u << 20;
+
+}
 
 ProbeRuntime::ProbeRuntime(const PeerOptions& options)
     : options_(options)
     , tracker_(static_cast<std::uint32_t>(
-          std::max(1.0, (options_.duration_seconds * 1000.0) / options_.interval_ms))) {}
+          std::max(1.0, (options_.duration_seconds * 1000.0) / options_.interval_ms)), options_.recommendation) {}
 
 void ProbeRuntime::set_session_token(std::uint64_t token) {
     session_token_ = token;
@@ -57,7 +62,7 @@ void ProbeRuntime::run_probe_window(const UdpDatagramSocket& socket, const Remot
     for (int i = 0; i < expected_packets; ++i) {
         ProbePacket packet;
         packet.session_token = session_token_;
-        packet.sequence = static_cast<std::uint32_t>(i);
+        packet.sequence = kMeasurementSequenceBase + static_cast<std::uint32_t>(i);
         packet.sent_at_ns = now_ns();
         packet.type = ProbePacketType::Probe;
         packet.payload.resize(static_cast<std::size_t>(options_.payload_bytes), 0);
