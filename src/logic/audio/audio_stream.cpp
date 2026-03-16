@@ -25,8 +25,38 @@ double estimate_drift_ppm(std::size_t n, double sum_x, double sum_y, double sum_
 
 }  // namespace
 
+namespace {
+std::size_t estimated_block_count(const AudioOptions& options) {
+    if (options.seconds <= 0 || options.sample_rate_hz <= 0 || options.frame_samples <= 0) {
+        return 0;
+    }
+    const double blocks = (static_cast<double>(options.seconds) * static_cast<double>(options.sample_rate_hz))
+        / static_cast<double>(options.frame_samples);
+    return static_cast<std::size_t>(std::max(1.0, std::ceil(blocks)));
+}
+}
+
 AudioStreamTracker::AudioStreamTracker(const AudioOptions& options)
-    : options_(options) {}
+    : options_(options) {
+    const auto reserve_n = estimated_block_count(options_);
+    output_rms_.reserve(reserve_n);
+    output_peak_.reserve(reserve_n);
+    buffer_fill_ratio_.reserve(reserve_n);
+}
+
+void AudioStreamTracker::set_options(const AudioOptions& options) {
+    options_ = options;
+    const auto reserve_n = estimated_block_count(options_);
+    if (reserve_n > output_rms_.capacity()) {
+        output_rms_.reserve(reserve_n);
+    }
+    if (reserve_n > output_peak_.capacity()) {
+        output_peak_.reserve(reserve_n);
+    }
+    if (reserve_n > buffer_fill_ratio_.capacity()) {
+        buffer_fill_ratio_.reserve(reserve_n);
+    }
+}
 
 void AudioStreamTracker::on_render_block(const float* interleaved, int frames, int channels, std::uint64_t) {
     if (!interleaved || frames <= 0 || channels <= 0) {
@@ -34,40 +64,37 @@ void AudioStreamTracker::on_render_block(const float* interleaved, int frames, i
     }
     ++rendered_blocks_;
     const int samples = frames * channels;
-    double sum_sq = 0.0;
-    double peak = 0.0;
+    float sum_sq = 0.0f;
+    float peak = 0.0f;
     for (int i = 0; i < samples; ++i) {
-        const double value = interleaved[i];
+        const float value = interleaved[i];
         sum_sq += value * value;
         peak = std::max(peak, std::abs(value));
     }
-    const double rms = std::sqrt(sum_sq / static_cast<double>(samples));
+    const float rms = std::sqrt(sum_sq / static_cast<float>(samples));
     output_rms_.push_back(rms);
     output_peak_.push_back(peak);
-    if (rms > 1e-4 || peak > 1e-3) {
+    if (rms > 1e-4f || peak > 1e-3f) {
         ++active_blocks_;
     }
 }
 
 void AudioStreamTracker::on_buffer_fill(float ratio, std::uint64_t steady_now_ns) {
     constexpr std::size_t kDriftWindowSamples = 300;
-    const double clamped_ratio = std::clamp(static_cast<double>(ratio), 0.0, 1.5);
+    const float clamped_ratio = std::clamp(ratio, 0.0f, 1.5f);
     const double time_s = static_cast<double>(steady_now_ns) / 1'000'000'000.0;
     buffer_fill_ratio_.push_back(clamped_ratio);
 
-    if (drift_time_s_.size() >= kDriftWindowSamples) {
-        const double old_x = drift_time_s_.front();
-        const double old_y = drift_ratio_.front();
-        drift_time_s_.pop_front();
-        drift_ratio_.pop_front();
+    if (drift_samples_.size() >= kDriftWindowSamples) {
+        const auto [old_x, old_y] = drift_samples_.front();
+        drift_samples_.pop_front();
         drift_sum_x_ -= old_x;
         drift_sum_y_ -= old_y;
         drift_sum_xx_ -= old_x * old_x;
         drift_sum_xy_ -= old_x * old_y;
     }
 
-    drift_time_s_.push_back(time_s);
-    drift_ratio_.push_back(clamped_ratio);
+    drift_samples_.emplace_back(time_s, static_cast<double>(clamped_ratio));
     drift_sum_x_ += time_s;
     drift_sum_y_ += clamped_ratio;
     drift_sum_xx_ += time_s * time_s;
@@ -82,20 +109,20 @@ void AudioStreamTracker::on_resent_blocks(std::uint32_t count) { resent_blocks_ 
 void AudioStreamTracker::on_gap_blocks(std::uint32_t count) { gap_blocks_ += count; }
 
 double AudioStreamTracker::current_drift_ppm_estimate() const {
-    return estimate_drift_ppm(drift_time_s_.size(), drift_sum_x_, drift_sum_y_, drift_sum_xx_, drift_sum_xy_, options_.sink_buffer_ms);
+    return estimate_drift_ppm(drift_samples_.size(), drift_sum_x_, drift_sum_y_, drift_sum_xx_, drift_sum_xy_, options_.sink_buffer_ms);
 }
 
-SummaryStats AudioStreamTracker::summarize(const std::vector<double>& values) {
+SummaryStats AudioStreamTracker::summarize(const std::vector<float>& values) {
     if (values.empty()) {
         return {};
     }
     const double sum = std::accumulate(values.begin(), values.end(), 0.0);
     return SummaryStats {
         .count = values.size(),
-        .minimum_ms = *std::min_element(values.begin(), values.end()),
+        .minimum_ms = static_cast<double>(*std::min_element(values.begin(), values.end())),
         .average_ms = sum / static_cast<double>(values.size()),
         .p95_ms = percentile(values, 95.0),
-        .maximum_ms = *std::max_element(values.begin(), values.end()),
+        .maximum_ms = static_cast<double>(*std::max_element(values.begin(), values.end())),
     };
 }
 

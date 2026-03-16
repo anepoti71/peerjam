@@ -1008,6 +1008,8 @@ CMakeFiles/peerjam_measure.dir/src/logic/network/path_probe_engine.cpp.o: \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__charconv/from_chars_result.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__charconv/from_chars_integral.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__charconv/to_chars.h \
+  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/netinet/in.h \
+  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/netinet6/in6.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/poll.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/poll.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/thread \

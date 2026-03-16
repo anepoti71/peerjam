@@ -14714,6 +14714,8 @@ CMakeFiles/peerjam_measure.dir/src/logic/network/path_probe_engine.cpp.o
  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/malloc/_ptrcheck.h
  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/math.h
  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/net/net_kev.h
+ /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/netinet/in.h
+ /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/netinet6/in6.h
  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/nl_types.h
  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/poll.h
  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/pthread.h

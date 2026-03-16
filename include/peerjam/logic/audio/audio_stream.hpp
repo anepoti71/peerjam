@@ -4,6 +4,7 @@
 
 #include <cstdint>
 #include <deque>
+#include <utility>
 #include <string>
 #include <vector>
 
@@ -56,7 +57,7 @@ struct AudioStreamReport {
 class AudioStreamTracker {
   public:
     explicit AudioStreamTracker(const AudioOptions& options);
-    void set_options(const AudioOptions& options) { options_ = options; }
+    void set_options(const AudioOptions& options);
 
     void on_render_block(const float* interleaved, int frames, int channels, std::uint64_t steady_now_ns);
     void on_buffer_fill(float ratio, std::uint64_t steady_now_ns);
@@ -73,14 +74,13 @@ class AudioStreamTracker {
     AudioStreamReport finish() const;
 
   private:
-    static SummaryStats summarize(const std::vector<double>& values);
+    static SummaryStats summarize(const std::vector<float>& values);
 
     AudioOptions options_;
-    std::vector<double> output_rms_;
-    std::vector<double> output_peak_;
-    std::vector<double> buffer_fill_ratio_;
-    std::deque<double> drift_time_s_;
-    std::deque<double> drift_ratio_;
+    std::vector<float> output_rms_;
+    std::vector<float> output_peak_;
+    std::vector<float> buffer_fill_ratio_;
+    std::deque<std::pair<double, double>> drift_samples_;
     double drift_sum_x_ {};
     double drift_sum_y_ {};
     double drift_sum_xx_ {};

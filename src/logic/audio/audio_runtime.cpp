@@ -209,20 +209,18 @@ AudioStreamReport AudioRuntime::run_synthetic(TickHook tick_hook) {
         if (!capture_source_ || !capture_source_->read_interleaved(input_interleaved.data(), options_.frame_samples, options_.channels)) {
             break;
         }
-        double input_sum_sq = 0.0;
-        double input_peak = 0.0;
+        float input_sum_sq = 0.0f;
+        float input_peak = 0.0f;
         for (float sample : input_interleaved) {
-            const double value = static_cast<double>(sample);
+            const float value = sample;
             input_sum_sq += value * value;
             input_peak = std::max(input_peak, std::abs(value));
         }
         const float input_rms = input_interleaved.empty() ? 0.0f
-            : static_cast<float>(std::sqrt(input_sum_sq / static_cast<double>(input_interleaved.size())));
-        const float input_peak_f = static_cast<float>(input_peak);
-        for (int i = 0; i < options_.frame_samples; ++i) {
-            for (int ch = 0; ch < options_.channels; ++ch) {
-                source_channels_[static_cast<std::size_t>(ch)][static_cast<std::size_t>(i)] =
-                    input_interleaved[static_cast<std::size_t>(i * options_.channels + ch)];
+            : std::sqrt(input_sum_sq / static_cast<float>(input_interleaved.size()));
+        for (int i = 0, idx = 0; i < options_.frame_samples; ++i) {
+            for (int ch = 0; ch < options_.channels; ++ch, ++idx) {
+                source_channels_[static_cast<std::size_t>(ch)][static_cast<std::size_t>(i)] = input_interleaved[static_cast<std::size_t>(idx)];
             }
         }
 
@@ -233,10 +231,9 @@ AudioStreamReport AudioRuntime::run_synthetic(TickHook tick_hook) {
         aoo_sink_process(sink_, reinterpret_cast<aoo_sample**>(sink_channel_ptrs_.data()), options_.frame_samples, ntp_now);
         aoo_sink_send(sink_);
 
-        for (int i = 0; i < options_.frame_samples; ++i) {
-            for (int ch = 0; ch < options_.channels; ++ch) {
-                sink_interleaved_[static_cast<std::size_t>(i * options_.channels + ch)] =
-                    sink_channels_[static_cast<std::size_t>(ch)][static_cast<std::size_t>(i)];
+        for (int i = 0, idx = 0; i < options_.frame_samples; ++i) {
+            for (int ch = 0; ch < options_.channels; ++ch, ++idx) {
+                sink_interleaved_[static_cast<std::size_t>(idx)] = sink_channels_[static_cast<std::size_t>(ch)][static_cast<std::size_t>(i)];
             }
         }
         if (playback_sink_) {
@@ -245,18 +242,18 @@ AudioStreamReport AudioRuntime::run_synthetic(TickHook tick_hook) {
         tracker_.on_render_block(sink_interleaved_.data(), options_.frame_samples, options_.channels, steady_now_ns);
 
         float buffer_fill = 0.0f;
+        const auto now = std::chrono::steady_clock::now();
         if (aoo_sink_get_sourceoption(sink_, &reply_context_, options_.source_id, aoo_opt_buffer_fill_ratio, &buffer_fill, sizeof(buffer_fill)) > 0) {
             tracker_.on_buffer_fill(buffer_fill, steady_now_ns);
-            maybe_adjust_sink_buffer(buffer_fill, std::chrono::steady_clock::now());
-            maybe_switch_runtime_codec(std::chrono::steady_clock::now(), buffer_fill);
+            maybe_adjust_sink_buffer(buffer_fill, now);
+            maybe_switch_runtime_codec(now, buffer_fill);
         }
-        maybe_adjust_drift_control(std::chrono::steady_clock::now());
-        const auto now = std::chrono::steady_clock::now();
+        maybe_adjust_drift_control(now);
         if (now >= next_snapshot_at_) {
             RealtimeAudioSnapshot snapshot;
             snapshot.steady_time_ns = steady_now_ns;
             snapshot.input_rms = input_rms;
-            snapshot.input_peak = input_peak_f;
+            snapshot.input_peak = input_peak;
             snapshot.buffer_fill_ratio = buffer_fill;
             snapshot.rendered_blocks = tracker_.current_rendered_blocks();
             snapshot.lost_blocks = tracker_.current_lost_blocks();
