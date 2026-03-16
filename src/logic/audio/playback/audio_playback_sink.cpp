@@ -1,4 +1,5 @@
 #include "peerjam/logic/audio/playback/audio_playback_sink.hpp"
+#include "peerjam/logic/audio/portaudio_runtime.hpp"
 
 #include "peerjam/common/logger.hpp"
 
@@ -21,21 +22,25 @@ class PortAudioPlaybackSink final : public AudioPlaybackSink {
   public:
     bool start(const AudioOptions& options) override {
         options_ = options;
-        if (Pa_Initialize() != paNoError) {
+        if (!retain_portaudio()) {
+            PJ_LOG(Error, "PortAudio playback init failed");
             return false;
         }
+        pa_retained_ = true;
 
         PaStreamParameters output_params {};
         output_params.device = options.output_device_index >= 0
             ? options.output_device_index
             : Pa_GetDefaultOutputDevice();
         if (output_params.device == paNoDevice) {
-            Pa_Terminate();
+            release_portaudio();
+            pa_retained_ = false;
             return false;
         }
         const PaDeviceInfo* info = Pa_GetDeviceInfo(output_params.device);
         if (!info || info->maxOutputChannels <= 0) {
-            Pa_Terminate();
+            release_portaudio();
+            pa_retained_ = false;
             return false;
         }
         output_params.channelCount = options.channels;
@@ -54,14 +59,16 @@ class PortAudioPlaybackSink final : public AudioPlaybackSink {
             nullptr
         );
         if (err != paNoError || !stream_) {
-            Pa_Terminate();
+            release_portaudio();
+            pa_retained_ = false;
             stream_ = nullptr;
             return false;
         }
         if (Pa_StartStream(stream_) != paNoError) {
             Pa_CloseStream(stream_);
             stream_ = nullptr;
-            Pa_Terminate();
+            release_portaudio();
+            pa_retained_ = false;
             return false;
         }
         return true;
@@ -81,12 +88,16 @@ class PortAudioPlaybackSink final : public AudioPlaybackSink {
             Pa_CloseStream(stream_);
             stream_ = nullptr;
         }
-        Pa_Terminate();
+        if (pa_retained_) {
+            release_portaudio();
+            pa_retained_ = false;
+        }
     }
 
   private:
     AudioOptions options_;
     PaStream* stream_ {nullptr};
+    bool pa_retained_ {false};
 };
 #endif
 

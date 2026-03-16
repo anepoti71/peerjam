@@ -435,6 +435,12 @@ void AudioRuntime::maybe_switch_runtime_codec(std::chrono::steady_clock::time_po
     if (!source_ || now < next_codec_eval_at_) {
         return;
     }
+    // Keep codec fixed unless Opus was explicitly selected by configuration/profile.
+    // This avoids local runs unexpectedly switching to Opus on builds where decode
+    // support may be unavailable at runtime.
+    if (!use_opus_codec(options_.codec)) {
+        return;
+    }
     next_codec_eval_at_ = now + std::chrono::milliseconds(1000);
 
     const std::uint32_t current_lost = tracker_.current_lost_blocks();

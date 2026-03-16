@@ -1,4 +1,5 @@
 #include "peerjam/logic/audio/capture/audio_capture_source.hpp"
+#include "peerjam/logic/audio/portaudio_runtime.hpp"
 
 #include "peerjam/common/logger.hpp"
 
@@ -57,15 +58,18 @@ class PortAudioCaptureSource final : public AudioCaptureSource {
   public:
     bool start(const AudioOptions& options) override {
         options_ = options;
-        if (Pa_Initialize() != paNoError) {
+        if (!retain_portaudio()) {
+            PJ_LOG(Error, "PortAudio capture init failed");
             return false;
         }
+        pa_retained_ = true;
         if (options.input_device_index >= 0) {
             PaStreamParameters input_params {};
             input_params.device = options.input_device_index;
             const PaDeviceInfo* info = Pa_GetDeviceInfo(input_params.device);
             if (!info || info->maxInputChannels <= 0) {
-                Pa_Terminate();
+                release_portaudio();
+                pa_retained_ = false;
                 stream_ = nullptr;
                 return false;
             }
@@ -84,7 +88,8 @@ class PortAudioCaptureSource final : public AudioCaptureSource {
                 nullptr
             );
             if (specific_err != paNoError || !stream_) {
-                Pa_Terminate();
+                release_portaudio();
+                pa_retained_ = false;
                 stream_ = nullptr;
                 return false;
             }
@@ -100,7 +105,8 @@ class PortAudioCaptureSource final : public AudioCaptureSource {
                 nullptr
             );
             if (err != paNoError || !stream_) {
-                Pa_Terminate();
+                release_portaudio();
+                pa_retained_ = false;
                 stream_ = nullptr;
                 return false;
             }
@@ -108,7 +114,8 @@ class PortAudioCaptureSource final : public AudioCaptureSource {
         if (Pa_StartStream(stream_) != paNoError) {
             Pa_CloseStream(stream_);
             stream_ = nullptr;
-            Pa_Terminate();
+            release_portaudio();
+            pa_retained_ = false;
             return false;
         }
         return true;
@@ -135,12 +142,16 @@ class PortAudioCaptureSource final : public AudioCaptureSource {
             Pa_CloseStream(stream_);
             stream_ = nullptr;
         }
-        Pa_Terminate();
+        if (pa_retained_) {
+            release_portaudio();
+            pa_retained_ = false;
+        }
     }
 
   private:
     AudioOptions options_;
     PaStream* stream_ {nullptr};
+    bool pa_retained_ {false};
 };
 #endif
 
@@ -164,7 +175,8 @@ std::string list_audio_io_devices_json() {
 #if !defined(PEERJAM_HAS_PORTAUDIO)
     return "[]";
 #else
-    if (Pa_Initialize() != paNoError) {
+    if (!retain_portaudio()) {
+        PJ_LOG(Error, "PortAudio device listing init failed");
         return "[]";
     }
     const int count = Pa_GetDeviceCount();
@@ -190,7 +202,7 @@ std::string list_audio_io_devices_json() {
            << "}";
     }
     os << "]";
-    Pa_Terminate();
+    release_portaudio();
     return os.str();
 #endif
 }

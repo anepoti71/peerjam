@@ -746,6 +746,30 @@ src/logic/audio/playback/audio_playback_sink.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/peerjam_measure.dir/build.make CMakeFiles/peerjam_measure.dir/src/logic/audio/playback/audio_playback_sink.cpp.s
 .PHONY : src/logic/audio/playback/audio_playback_sink.cpp.s
 
+src/logic/audio/portaudio_runtime.o: src/logic/audio/portaudio_runtime.cpp.o
+.PHONY : src/logic/audio/portaudio_runtime.o
+
+# target to build an object file
+src/logic/audio/portaudio_runtime.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/peerjam_measure.dir/build.make CMakeFiles/peerjam_measure.dir/src/logic/audio/portaudio_runtime.cpp.o
+.PHONY : src/logic/audio/portaudio_runtime.cpp.o
+
+src/logic/audio/portaudio_runtime.i: src/logic/audio/portaudio_runtime.cpp.i
+.PHONY : src/logic/audio/portaudio_runtime.i
+
+# target to preprocess a source file
+src/logic/audio/portaudio_runtime.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/peerjam_measure.dir/build.make CMakeFiles/peerjam_measure.dir/src/logic/audio/portaudio_runtime.cpp.i
+.PHONY : src/logic/audio/portaudio_runtime.cpp.i
+
+src/logic/audio/portaudio_runtime.s: src/logic/audio/portaudio_runtime.cpp.s
+.PHONY : src/logic/audio/portaudio_runtime.s
+
+# target to generate assembly for a file
+src/logic/audio/portaudio_runtime.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/peerjam_measure.dir/build.make CMakeFiles/peerjam_measure.dir/src/logic/audio/portaudio_runtime.cpp.s
+.PHONY : src/logic/audio/portaudio_runtime.cpp.s
+
 src/logic/control/aoo_peer_client.o: src/logic/control/aoo_peer_client.cpp.o
 .PHONY : src/logic/control/aoo_peer_client.o
 
@@ -1189,6 +1213,9 @@ help:
 	@echo "... src/logic/audio/playback/audio_playback_sink.o"
 	@echo "... src/logic/audio/playback/audio_playback_sink.i"
 	@echo "... src/logic/audio/playback/audio_playback_sink.s"
+	@echo "... src/logic/audio/portaudio_runtime.o"
+	@echo "... src/logic/audio/portaudio_runtime.i"
+	@echo "... src/logic/audio/portaudio_runtime.s"
 	@echo "... src/logic/control/aoo_peer_client.o"
 	@echo "... src/logic/control/aoo_peer_client.i"
 	@echo "... src/logic/control/aoo_peer_client.s"

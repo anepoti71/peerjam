@@ -41,6 +41,10 @@ let monitorGainNode = null;
 let monitorEnabled = false;
 let rafId = 0;
 let events = null;
+let reconnectTimerId = 0;
+let reconnectAttempts = 0;
+let reconnectUrl = "";
+let manualDisconnect = false;
 
 const telemetryHistory = {
   latency: [],
@@ -285,6 +289,12 @@ function connectRealtimeEvents() {
   if (!url) {
     return;
   }
+  manualDisconnect = false;
+  reconnectUrl = url;
+  if (reconnectTimerId) {
+    clearTimeout(reconnectTimerId);
+    reconnectTimerId = 0;
+  }
   if (events) {
     events.close();
     events = null;
@@ -294,6 +304,12 @@ function connectRealtimeEvents() {
   els.disconnectEventsBtn.disabled = false;
   els.telemetryStatus.textContent = "Connecting realtime...";
   els.telemetryStatus.className = "pill pill-warn";
+
+  events.onopen = () => {
+    reconnectAttempts = 0;
+    els.telemetryStatus.textContent = "Realtime from C++";
+    els.telemetryStatus.className = "pill pill-good";
+  };
 
   events.onmessage = (evt) => {
     try {
@@ -314,6 +330,20 @@ function connectRealtimeEvents() {
   };
 
   events.onerror = () => {
+    if (events) {
+      events.close();
+      events = null;
+    }
+    if (!manualDisconnect && reconnectUrl) {
+      const delayMs = Math.min(5000, 500 * (2 ** reconnectAttempts));
+      reconnectAttempts += 1;
+      els.telemetryStatus.textContent = `Realtime disconnected (reconnect in ${Math.round(delayMs / 1000)}s)`;
+      els.telemetryStatus.className = "pill pill-warn";
+      reconnectTimerId = setTimeout(() => {
+        connectRealtimeEvents();
+      }, delayMs);
+      return;
+    }
     els.telemetryStatus.textContent = "Realtime disconnected";
     els.telemetryStatus.className = "pill pill-warn";
   };
@@ -323,6 +353,11 @@ function connectRealtimeEvents() {
 }
 
 function disconnectRealtimeEvents() {
+  manualDisconnect = true;
+  if (reconnectTimerId) {
+    clearTimeout(reconnectTimerId);
+    reconnectTimerId = 0;
+  }
   if (events) {
     events.close();
     events = null;
@@ -341,6 +376,20 @@ function styleMetric(card, value, warmLimit, hotLimit) {
     return;
   }
   if (value >= warmLimit) {
+    card.classList.add("metric-warm");
+  }
+}
+
+function styleBandwidthMetric(card, value, warmLowerBound, hotLowerBound) {
+  card.classList.remove("metric-warm", "metric-hot");
+  if (!Number.isFinite(value)) {
+    return;
+  }
+  if (value <= hotLowerBound) {
+    card.classList.add("metric-hot");
+    return;
+  }
+  if (value <= warmLowerBound) {
     card.classList.add("metric-warm");
   }
 }
@@ -403,7 +452,8 @@ function drawTelemetryTrend() {
 }
 
 function setTelemetry(latencyMs, jitterMs, bandwidthKbps, sourceLabel = "Telemetry updated") {
-  const latency = Number(latencyMs);
+  const rawLatency = Number(latencyMs);
+  const latency = Number.isFinite(rawLatency) && rawLatency > 0 ? rawLatency : Number.NaN;
   const jitter = Number(jitterMs);
   const bandwidth = Number(bandwidthKbps);
 
@@ -413,7 +463,7 @@ function setTelemetry(latencyMs, jitterMs, bandwidthKbps, sourceLabel = "Telemet
 
   styleMetric(els.latencyCard, latency, 12, 30);
   styleMetric(els.jitterCard, jitter, 2.5, 5);
-  styleMetric(els.bandwidthCard, bandwidth, 64, 32);
+  styleBandwidthMetric(els.bandwidthCard, bandwidth, 64, 32);
 
   pushTelemetryTrend(latency, jitter);
   drawTelemetryTrend();

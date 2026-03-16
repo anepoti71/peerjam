@@ -184,10 +184,24 @@ CMakeFiles/peerjam_measure.dir/src/logic/audio/audio_runtime.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/peerjam_measure.dir/src/logic/audio/audio_runtime.cpp.s"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/src/logic/audio/audio_runtime.cpp -o CMakeFiles/peerjam_measure.dir/src/logic/audio/audio_runtime.cpp.s
 
+CMakeFiles/peerjam_measure.dir/src/logic/audio/portaudio_runtime.cpp.o: CMakeFiles/peerjam_measure.dir/flags.make
+CMakeFiles/peerjam_measure.dir/src/logic/audio/portaudio_runtime.cpp.o: /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/src/logic/audio/portaudio_runtime.cpp
+CMakeFiles/peerjam_measure.dir/src/logic/audio/portaudio_runtime.cpp.o: CMakeFiles/peerjam_measure.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/build-portaudio/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Building CXX object CMakeFiles/peerjam_measure.dir/src/logic/audio/portaudio_runtime.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/peerjam_measure.dir/src/logic/audio/portaudio_runtime.cpp.o -MF CMakeFiles/peerjam_measure.dir/src/logic/audio/portaudio_runtime.cpp.o.d -o CMakeFiles/peerjam_measure.dir/src/logic/audio/portaudio_runtime.cpp.o -c /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/src/logic/audio/portaudio_runtime.cpp
+
+CMakeFiles/peerjam_measure.dir/src/logic/audio/portaudio_runtime.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/peerjam_measure.dir/src/logic/audio/portaudio_runtime.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/src/logic/audio/portaudio_runtime.cpp > CMakeFiles/peerjam_measure.dir/src/logic/audio/portaudio_runtime.cpp.i
+
+CMakeFiles/peerjam_measure.dir/src/logic/audio/portaudio_runtime.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/peerjam_measure.dir/src/logic/audio/portaudio_runtime.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/src/logic/audio/portaudio_runtime.cpp -o CMakeFiles/peerjam_measure.dir/src/logic/audio/portaudio_runtime.cpp.s
+
 CMakeFiles/peerjam_measure.dir/src/logic/network/candidate.cpp.o: CMakeFiles/peerjam_measure.dir/flags.make
 CMakeFiles/peerjam_measure.dir/src/logic/network/candidate.cpp.o: /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/src/logic/network/candidate.cpp
 CMakeFiles/peerjam_measure.dir/src/logic/network/candidate.cpp.o: CMakeFiles/peerjam_measure.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/build-portaudio/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Building CXX object CMakeFiles/peerjam_measure.dir/src/logic/network/candidate.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/build-portaudio/CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Building CXX object CMakeFiles/peerjam_measure.dir/src/logic/network/candidate.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/peerjam_measure.dir/src/logic/network/candidate.cpp.o -MF CMakeFiles/peerjam_measure.dir/src/logic/network/candidate.cpp.o.d -o CMakeFiles/peerjam_measure.dir/src/logic/network/candidate.cpp.o -c /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/src/logic/network/candidate.cpp
 
 CMakeFiles/peerjam_measure.dir/src/logic/network/candidate.cpp.i: cmake_force
@@ -201,7 +215,7 @@ CMakeFiles/peerjam_measure.dir/src/logic/network/candidate.cpp.s: cmake_force
 CMakeFiles/peerjam_measure.dir/src/logic/network/candidate_exchange.cpp.o: CMakeFiles/peerjam_measure.dir/flags.make
 CMakeFiles/peerjam_measure.dir/src/logic/network/candidate_exchange.cpp.o: /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/src/logic/network/candidate_exchange.cpp
 CMakeFiles/peerjam_measure.dir/src/logic/network/candidate_exchange.cpp.o: CMakeFiles/peerjam_measure.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/build-portaudio/CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Building CXX object CMakeFiles/peerjam_measure.dir/src/logic/network/candidate_exchange.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/build-portaudio/CMakeFiles --progress-num=$(CMAKE_PROGRESS_11) "Building CXX object CMakeFiles/peerjam_measure.dir/src/logic/network/candidate_exchange.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/peerjam_measure.dir/src/logic/network/candidate_exchange.cpp.o -MF CMakeFiles/peerjam_measure.dir/src/logic/network/candidate_exchange.cpp.o.d -o CMakeFiles/peerjam_measure.dir/src/logic/network/candidate_exchange.cpp.o -c /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/src/logic/network/candidate_exchange.cpp
 
 CMakeFiles/peerjam_measure.dir/src/logic/network/candidate_exchange.cpp.i: cmake_force
@@ -215,7 +229,7 @@ CMakeFiles/peerjam_measure.dir/src/logic/network/candidate_exchange.cpp.s: cmake
 CMakeFiles/peerjam_measure.dir/src/logic/network/candidate_gatherer.cpp.o: CMakeFiles/peerjam_measure.dir/flags.make
 CMakeFiles/peerjam_measure.dir/src/logic/network/candidate_gatherer.cpp.o: /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/src/logic/network/candidate_gatherer.cpp
 CMakeFiles/peerjam_measure.dir/src/logic/network/candidate_gatherer.cpp.o: CMakeFiles/peerjam_measure.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/build-portaudio/CMakeFiles --progress-num=$(CMAKE_PROGRESS_11) "Building CXX object CMakeFiles/peerjam_measure.dir/src/logic/network/candidate_gatherer.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/build-portaudio/CMakeFiles --progress-num=$(CMAKE_PROGRESS_12) "Building CXX object CMakeFiles/peerjam_measure.dir/src/logic/network/candidate_gatherer.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/peerjam_measure.dir/src/logic/network/candidate_gatherer.cpp.o -MF CMakeFiles/peerjam_measure.dir/src/logic/network/candidate_gatherer.cpp.o.d -o CMakeFiles/peerjam_measure.dir/src/logic/network/candidate_gatherer.cpp.o -c /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/src/logic/network/candidate_gatherer.cpp
 
 CMakeFiles/peerjam_measure.dir/src/logic/network/candidate_gatherer.cpp.i: cmake_force
@@ -229,7 +243,7 @@ CMakeFiles/peerjam_measure.dir/src/logic/network/candidate_gatherer.cpp.s: cmake
 CMakeFiles/peerjam_measure.dir/src/logic/network/path_manager.cpp.o: CMakeFiles/peerjam_measure.dir/flags.make
 CMakeFiles/peerjam_measure.dir/src/logic/network/path_manager.cpp.o: /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/src/logic/network/path_manager.cpp
 CMakeFiles/peerjam_measure.dir/src/logic/network/path_manager.cpp.o: CMakeFiles/peerjam_measure.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/build-portaudio/CMakeFiles --progress-num=$(CMAKE_PROGRESS_12) "Building CXX object CMakeFiles/peerjam_measure.dir/src/logic/network/path_manager.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/build-portaudio/CMakeFiles --progress-num=$(CMAKE_PROGRESS_13) "Building CXX object CMakeFiles/peerjam_measure.dir/src/logic/network/path_manager.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/peerjam_measure.dir/src/logic/network/path_manager.cpp.o -MF CMakeFiles/peerjam_measure.dir/src/logic/network/path_manager.cpp.o.d -o CMakeFiles/peerjam_measure.dir/src/logic/network/path_manager.cpp.o -c /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/src/logic/network/path_manager.cpp
 
 CMakeFiles/peerjam_measure.dir/src/logic/network/path_manager.cpp.i: cmake_force
@@ -243,7 +257,7 @@ CMakeFiles/peerjam_measure.dir/src/logic/network/path_manager.cpp.s: cmake_force
 CMakeFiles/peerjam_measure.dir/src/logic/network/path_probe_engine.cpp.o: CMakeFiles/peerjam_measure.dir/flags.make
 CMakeFiles/peerjam_measure.dir/src/logic/network/path_probe_engine.cpp.o: /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/src/logic/network/path_probe_engine.cpp
 CMakeFiles/peerjam_measure.dir/src/logic/network/path_probe_engine.cpp.o: CMakeFiles/peerjam_measure.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/build-portaudio/CMakeFiles --progress-num=$(CMAKE_PROGRESS_13) "Building CXX object CMakeFiles/peerjam_measure.dir/src/logic/network/path_probe_engine.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/build-portaudio/CMakeFiles --progress-num=$(CMAKE_PROGRESS_14) "Building CXX object CMakeFiles/peerjam_measure.dir/src/logic/network/path_probe_engine.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/peerjam_measure.dir/src/logic/network/path_probe_engine.cpp.o -MF CMakeFiles/peerjam_measure.dir/src/logic/network/path_probe_engine.cpp.o.d -o CMakeFiles/peerjam_measure.dir/src/logic/network/path_probe_engine.cpp.o -c /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/src/logic/network/path_probe_engine.cpp
 
 CMakeFiles/peerjam_measure.dir/src/logic/network/path_probe_engine.cpp.i: cmake_force
@@ -257,7 +271,7 @@ CMakeFiles/peerjam_measure.dir/src/logic/network/path_probe_engine.cpp.s: cmake_
 CMakeFiles/peerjam_measure.dir/src/logic/network/path_scorer.cpp.o: CMakeFiles/peerjam_measure.dir/flags.make
 CMakeFiles/peerjam_measure.dir/src/logic/network/path_scorer.cpp.o: /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/src/logic/network/path_scorer.cpp
 CMakeFiles/peerjam_measure.dir/src/logic/network/path_scorer.cpp.o: CMakeFiles/peerjam_measure.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/build-portaudio/CMakeFiles --progress-num=$(CMAKE_PROGRESS_14) "Building CXX object CMakeFiles/peerjam_measure.dir/src/logic/network/path_scorer.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/build-portaudio/CMakeFiles --progress-num=$(CMAKE_PROGRESS_15) "Building CXX object CMakeFiles/peerjam_measure.dir/src/logic/network/path_scorer.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/peerjam_measure.dir/src/logic/network/path_scorer.cpp.o -MF CMakeFiles/peerjam_measure.dir/src/logic/network/path_scorer.cpp.o.d -o CMakeFiles/peerjam_measure.dir/src/logic/network/path_scorer.cpp.o -c /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/src/logic/network/path_scorer.cpp
 
 CMakeFiles/peerjam_measure.dir/src/logic/network/path_scorer.cpp.i: cmake_force
@@ -271,7 +285,7 @@ CMakeFiles/peerjam_measure.dir/src/logic/network/path_scorer.cpp.s: cmake_force
 CMakeFiles/peerjam_measure.dir/src/logic/probe/probe_packet.cpp.o: CMakeFiles/peerjam_measure.dir/flags.make
 CMakeFiles/peerjam_measure.dir/src/logic/probe/probe_packet.cpp.o: /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/src/logic/probe/probe_packet.cpp
 CMakeFiles/peerjam_measure.dir/src/logic/probe/probe_packet.cpp.o: CMakeFiles/peerjam_measure.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/build-portaudio/CMakeFiles --progress-num=$(CMAKE_PROGRESS_15) "Building CXX object CMakeFiles/peerjam_measure.dir/src/logic/probe/probe_packet.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/build-portaudio/CMakeFiles --progress-num=$(CMAKE_PROGRESS_16) "Building CXX object CMakeFiles/peerjam_measure.dir/src/logic/probe/probe_packet.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/peerjam_measure.dir/src/logic/probe/probe_packet.cpp.o -MF CMakeFiles/peerjam_measure.dir/src/logic/probe/probe_packet.cpp.o.d -o CMakeFiles/peerjam_measure.dir/src/logic/probe/probe_packet.cpp.o -c /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/src/logic/probe/probe_packet.cpp
 
 CMakeFiles/peerjam_measure.dir/src/logic/probe/probe_packet.cpp.i: cmake_force
@@ -285,7 +299,7 @@ CMakeFiles/peerjam_measure.dir/src/logic/probe/probe_packet.cpp.s: cmake_force
 CMakeFiles/peerjam_measure.dir/src/logic/probe/probe_runtime.cpp.o: CMakeFiles/peerjam_measure.dir/flags.make
 CMakeFiles/peerjam_measure.dir/src/logic/probe/probe_runtime.cpp.o: /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/src/logic/probe/probe_runtime.cpp
 CMakeFiles/peerjam_measure.dir/src/logic/probe/probe_runtime.cpp.o: CMakeFiles/peerjam_measure.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/build-portaudio/CMakeFiles --progress-num=$(CMAKE_PROGRESS_16) "Building CXX object CMakeFiles/peerjam_measure.dir/src/logic/probe/probe_runtime.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/build-portaudio/CMakeFiles --progress-num=$(CMAKE_PROGRESS_17) "Building CXX object CMakeFiles/peerjam_measure.dir/src/logic/probe/probe_runtime.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/peerjam_measure.dir/src/logic/probe/probe_runtime.cpp.o -MF CMakeFiles/peerjam_measure.dir/src/logic/probe/probe_runtime.cpp.o.d -o CMakeFiles/peerjam_measure.dir/src/logic/probe/probe_runtime.cpp.o -c /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/src/logic/probe/probe_runtime.cpp
 
 CMakeFiles/peerjam_measure.dir/src/logic/probe/probe_runtime.cpp.i: cmake_force
@@ -299,7 +313,7 @@ CMakeFiles/peerjam_measure.dir/src/logic/probe/probe_runtime.cpp.s: cmake_force
 CMakeFiles/peerjam_measure.dir/src/logic/probe/measurement.cpp.o: CMakeFiles/peerjam_measure.dir/flags.make
 CMakeFiles/peerjam_measure.dir/src/logic/probe/measurement.cpp.o: /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/src/logic/probe/measurement.cpp
 CMakeFiles/peerjam_measure.dir/src/logic/probe/measurement.cpp.o: CMakeFiles/peerjam_measure.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/build-portaudio/CMakeFiles --progress-num=$(CMAKE_PROGRESS_17) "Building CXX object CMakeFiles/peerjam_measure.dir/src/logic/probe/measurement.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/build-portaudio/CMakeFiles --progress-num=$(CMAKE_PROGRESS_18) "Building CXX object CMakeFiles/peerjam_measure.dir/src/logic/probe/measurement.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/peerjam_measure.dir/src/logic/probe/measurement.cpp.o -MF CMakeFiles/peerjam_measure.dir/src/logic/probe/measurement.cpp.o.d -o CMakeFiles/peerjam_measure.dir/src/logic/probe/measurement.cpp.o -c /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/src/logic/probe/measurement.cpp
 
 CMakeFiles/peerjam_measure.dir/src/logic/probe/measurement.cpp.i: cmake_force
@@ -313,7 +327,7 @@ CMakeFiles/peerjam_measure.dir/src/logic/probe/measurement.cpp.s: cmake_force
 CMakeFiles/peerjam_measure.dir/src/logic/ui/realtime_ui_server.cpp.o: CMakeFiles/peerjam_measure.dir/flags.make
 CMakeFiles/peerjam_measure.dir/src/logic/ui/realtime_ui_server.cpp.o: /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/src/logic/ui/realtime_ui_server.cpp
 CMakeFiles/peerjam_measure.dir/src/logic/ui/realtime_ui_server.cpp.o: CMakeFiles/peerjam_measure.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/build-portaudio/CMakeFiles --progress-num=$(CMAKE_PROGRESS_18) "Building CXX object CMakeFiles/peerjam_measure.dir/src/logic/ui/realtime_ui_server.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/build-portaudio/CMakeFiles --progress-num=$(CMAKE_PROGRESS_19) "Building CXX object CMakeFiles/peerjam_measure.dir/src/logic/ui/realtime_ui_server.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/peerjam_measure.dir/src/logic/ui/realtime_ui_server.cpp.o -MF CMakeFiles/peerjam_measure.dir/src/logic/ui/realtime_ui_server.cpp.o.d -o CMakeFiles/peerjam_measure.dir/src/logic/ui/realtime_ui_server.cpp.o -c /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/src/logic/ui/realtime_ui_server.cpp
 
 CMakeFiles/peerjam_measure.dir/src/logic/ui/realtime_ui_server.cpp.i: cmake_force
@@ -327,7 +341,7 @@ CMakeFiles/peerjam_measure.dir/src/logic/ui/realtime_ui_server.cpp.s: cmake_forc
 CMakeFiles/peerjam_measure.dir/src/logic/transport/udp_datagram_socket.cpp.o: CMakeFiles/peerjam_measure.dir/flags.make
 CMakeFiles/peerjam_measure.dir/src/logic/transport/udp_datagram_socket.cpp.o: /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/src/logic/transport/udp_datagram_socket.cpp
 CMakeFiles/peerjam_measure.dir/src/logic/transport/udp_datagram_socket.cpp.o: CMakeFiles/peerjam_measure.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/build-portaudio/CMakeFiles --progress-num=$(CMAKE_PROGRESS_19) "Building CXX object CMakeFiles/peerjam_measure.dir/src/logic/transport/udp_datagram_socket.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/build-portaudio/CMakeFiles --progress-num=$(CMAKE_PROGRESS_20) "Building CXX object CMakeFiles/peerjam_measure.dir/src/logic/transport/udp_datagram_socket.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/peerjam_measure.dir/src/logic/transport/udp_datagram_socket.cpp.o -MF CMakeFiles/peerjam_measure.dir/src/logic/transport/udp_datagram_socket.cpp.o.d -o CMakeFiles/peerjam_measure.dir/src/logic/transport/udp_datagram_socket.cpp.o -c /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/src/logic/transport/udp_datagram_socket.cpp
 
 CMakeFiles/peerjam_measure.dir/src/logic/transport/udp_datagram_socket.cpp.i: cmake_force
@@ -341,7 +355,7 @@ CMakeFiles/peerjam_measure.dir/src/logic/transport/udp_datagram_socket.cpp.s: cm
 CMakeFiles/peerjam_measure.dir/src/logic/control/aoo_peer_client.cpp.o: CMakeFiles/peerjam_measure.dir/flags.make
 CMakeFiles/peerjam_measure.dir/src/logic/control/aoo_peer_client.cpp.o: /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/src/logic/control/aoo_peer_client.cpp
 CMakeFiles/peerjam_measure.dir/src/logic/control/aoo_peer_client.cpp.o: CMakeFiles/peerjam_measure.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/build-portaudio/CMakeFiles --progress-num=$(CMAKE_PROGRESS_20) "Building CXX object CMakeFiles/peerjam_measure.dir/src/logic/control/aoo_peer_client.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/build-portaudio/CMakeFiles --progress-num=$(CMAKE_PROGRESS_21) "Building CXX object CMakeFiles/peerjam_measure.dir/src/logic/control/aoo_peer_client.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/peerjam_measure.dir/src/logic/control/aoo_peer_client.cpp.o -MF CMakeFiles/peerjam_measure.dir/src/logic/control/aoo_peer_client.cpp.o.d -o CMakeFiles/peerjam_measure.dir/src/logic/control/aoo_peer_client.cpp.o -c /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/src/logic/control/aoo_peer_client.cpp
 
 CMakeFiles/peerjam_measure.dir/src/logic/control/aoo_peer_client.cpp.i: cmake_force
@@ -362,6 +376,7 @@ peerjam_measure_OBJECTS = \
 "CMakeFiles/peerjam_measure.dir/src/logic/audio/playback/audio_playback_sink.cpp.o" \
 "CMakeFiles/peerjam_measure.dir/src/logic/audio/audio_stream.cpp.o" \
 "CMakeFiles/peerjam_measure.dir/src/logic/audio/audio_runtime.cpp.o" \
+"CMakeFiles/peerjam_measure.dir/src/logic/audio/portaudio_runtime.cpp.o" \
 "CMakeFiles/peerjam_measure.dir/src/logic/network/candidate.cpp.o" \
 "CMakeFiles/peerjam_measure.dir/src/logic/network/candidate_exchange.cpp.o" \
 "CMakeFiles/peerjam_measure.dir/src/logic/network/candidate_gatherer.cpp.o" \
@@ -386,6 +401,7 @@ libpeerjam_measure.a: CMakeFiles/peerjam_measure.dir/src/logic/audio/capture/aud
 libpeerjam_measure.a: CMakeFiles/peerjam_measure.dir/src/logic/audio/playback/audio_playback_sink.cpp.o
 libpeerjam_measure.a: CMakeFiles/peerjam_measure.dir/src/logic/audio/audio_stream.cpp.o
 libpeerjam_measure.a: CMakeFiles/peerjam_measure.dir/src/logic/audio/audio_runtime.cpp.o
+libpeerjam_measure.a: CMakeFiles/peerjam_measure.dir/src/logic/audio/portaudio_runtime.cpp.o
 libpeerjam_measure.a: CMakeFiles/peerjam_measure.dir/src/logic/network/candidate.cpp.o
 libpeerjam_measure.a: CMakeFiles/peerjam_measure.dir/src/logic/network/candidate_exchange.cpp.o
 libpeerjam_measure.a: CMakeFiles/peerjam_measure.dir/src/logic/network/candidate_gatherer.cpp.o
@@ -400,7 +416,7 @@ libpeerjam_measure.a: CMakeFiles/peerjam_measure.dir/src/logic/transport/udp_dat
 libpeerjam_measure.a: CMakeFiles/peerjam_measure.dir/src/logic/control/aoo_peer_client.cpp.o
 libpeerjam_measure.a: CMakeFiles/peerjam_measure.dir/build.make
 libpeerjam_measure.a: CMakeFiles/peerjam_measure.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/build-portaudio/CMakeFiles --progress-num=$(CMAKE_PROGRESS_21) "Linking CXX static library libpeerjam_measure.a"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/build-portaudio/CMakeFiles --progress-num=$(CMAKE_PROGRESS_22) "Linking CXX static library libpeerjam_measure.a"
 	$(CMAKE_COMMAND) -P CMakeFiles/peerjam_measure.dir/cmake_clean_target.cmake
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/peerjam_measure.dir/link.txt --verbose=$(VERBOSE)
 

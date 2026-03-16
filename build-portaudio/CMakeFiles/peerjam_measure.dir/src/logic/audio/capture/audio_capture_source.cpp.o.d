@@ -964,6 +964,7 @@ CMakeFiles/peerjam_measure.dir/src/logic/audio/capture/audio_capture_source.cpp.
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/print \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/unistd.h \
   /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/include/peerjam/logic/probe/recommendation_policy_options.hpp \
+  /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/include/peerjam/logic/audio/portaudio_runtime.hpp \
   /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/include/peerjam/common/logger.hpp \
   /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/include/peerjam/logic/control/peer_types.hpp \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/socket.h \

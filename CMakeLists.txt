@@ -121,6 +121,7 @@ add_library(peerjam_measure STATIC
   src/logic/audio/playback/audio_playback_sink.cpp
   src/logic/audio/audio_stream.cpp
   src/logic/audio/audio_runtime.cpp
+  src/logic/audio/portaudio_runtime.cpp
   src/logic/network/candidate.cpp
   src/logic/network/candidate_exchange.cpp
   src/logic/network/candidate_gatherer.cpp

@@ -15,6 +15,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/peerjam_measure.dir/src/logic/audio/capture/audio_capture_source.cpp.o.d"
   "CMakeFiles/peerjam_measure.dir/src/logic/audio/playback/audio_playback_sink.cpp.o"
   "CMakeFiles/peerjam_measure.dir/src/logic/audio/playback/audio_playback_sink.cpp.o.d"
+  "CMakeFiles/peerjam_measure.dir/src/logic/audio/portaudio_runtime.cpp.o"
+  "CMakeFiles/peerjam_measure.dir/src/logic/audio/portaudio_runtime.cpp.o.d"
   "CMakeFiles/peerjam_measure.dir/src/logic/control/aoo_peer_client.cpp.o"
   "CMakeFiles/peerjam_measure.dir/src/logic/control/aoo_peer_client.cpp.o.d"
   "CMakeFiles/peerjam_measure.dir/src/logic/network/candidate.cpp.o"

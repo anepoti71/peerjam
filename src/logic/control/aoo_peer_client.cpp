@@ -49,6 +49,10 @@ bool is_localhost_host(const std::string& host) {
     return host == "127.0.0.1" || host == "::1" || host == "localhost";
 }
 
+bool is_ipv4_candidate(const NetworkCandidate& candidate) {
+    return candidate.addr.ss_family == AF_INET;
+}
+
 std::vector<NetworkCandidate> normalize_candidates(
     std::vector<NetworkCandidate> candidates,
     bool localhost_mode
@@ -60,7 +64,7 @@ std::vector<NetworkCandidate> normalize_candidates(
     // and does not add value for local smoke verification.
     if (localhost_mode) {
         for (const auto& candidate : candidates) {
-            if (candidate.is_loopback) {
+            if (candidate.is_loopback && is_ipv4_candidate(candidate)) {
                 filtered.push_back(candidate);
             }
         }
@@ -591,6 +595,8 @@ int AooPeerClient::run_qualification(bool include_audio) {
         if (ui_server_) {
             int input_index = -2;
             int output_index = -2;
+            // Device selection is consumed once before audio setup.
+            // Mid-session UI changes require a new run to take effect.
             if (ui_server_->consume_selected_devices(input_index, output_index)) {
                 if (input_index >= -1) {
                     options_.audio.input_device_index = input_index;

@@ -18,6 +18,47 @@ namespace {
 constexpr int kAcceptPollMs = 200;
 constexpr int kRequestReadBytes = 2048;
 
+int send_flags() {
+#if defined(MSG_NOSIGNAL)
+    return MSG_NOSIGNAL;
+#else
+    return 0;
+#endif
+}
+
+void configure_client_socket(int fd) {
+#if defined(SO_NOSIGPIPE)
+    int one = 1;
+    ::setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, &one, sizeof(one));
+#else
+    (void)fd;
+#endif
+}
+
+bool send_all_no_sigpipe(int fd, const char* data, std::size_t size) {
+    std::size_t offset = 0;
+    while (offset < size) {
+        const ssize_t sent = ::send(fd, data + offset, size - offset, send_flags());
+        if (sent <= 0) {
+            return false;
+        }
+        offset += static_cast<std::size_t>(sent);
+    }
+    return true;
+}
+
+bool send_all_no_sigpipe(int fd, const std::string& data) {
+    return send_all_no_sigpipe(fd, data.data(), data.size());
+}
+
+std::string extract_request_body(const std::string& request) {
+    const auto pos = request.find("\r\n\r\n");
+    if (pos == std::string::npos) {
+        return {};
+    }
+    return request.substr(pos + 4);
+}
+
 std::string cors_headers(const std::string& content_type, std::size_t size) {
     return "HTTP/1.1 200 OK\r\n"
            "Content-Type: " + content_type + "\r\n"
@@ -37,7 +78,7 @@ void send_simple_response(int fd, const std::string& status, const std::string& 
         "Content-Type: application/json\r\n"
         "Content-Length: " + std::to_string(body.size()) + "\r\n\r\n"
         + body;
-    ::send(fd, response.data(), response.size(), 0);
+    (void)send_all_no_sigpipe(fd, response);
 }
 
 bool parse_body_index(const std::string& body, const char* key, int& out_value) {
@@ -147,6 +188,7 @@ void RealtimeUiServer::accept_loop() {
         if (fd < 0) {
             continue;
         }
+        configure_client_socket(fd);
         if (!attach_event_client(fd)) {
             ::close(fd);
         }
@@ -173,7 +215,7 @@ bool RealtimeUiServer::attach_event_client(int fd) {
             "Access-Control-Allow-Methods: GET, POST, OPTIONS\r\n"
             "Access-Control-Allow-Headers: Content-Type\r\n"
             "Content-Length: 0\r\n\r\n";
-        ::send(fd, kOptions, std::strlen(kOptions), 0);
+        (void)send_all_no_sigpipe(fd, kOptions, std::strlen(kOptions));
         return false;
     }
 
@@ -184,16 +226,17 @@ bool RealtimeUiServer::attach_event_client(int fd) {
             body = devices_payload_;
         }
         const std::string headers = cors_headers("application/json", body.size());
-        ::send(fd, headers.data(), headers.size(), 0);
-        ::send(fd, body.data(), body.size(), 0);
+        (void)send_all_no_sigpipe(fd, headers);
+        (void)send_all_no_sigpipe(fd, body);
         return false;
     }
 
     if (sets_devices) {
+        const std::string body = extract_request_body(request);
         int input_index = -2;
         int output_index = -2;
-        (void)parse_body_index(request, "input_device_index", input_index);
-        (void)parse_body_index(request, "output_device_index", output_index);
+        (void)parse_body_index(body, "input_device_index", input_index);
+        (void)parse_body_index(body, "output_device_index", output_index);
         {
             std::lock_guard lock(mutex_);
             selected_input_device_ = input_index;
@@ -208,7 +251,7 @@ bool RealtimeUiServer::attach_event_client(int fd) {
             "HTTP/1.1 404 Not Found\r\n"
             "Connection: close\r\n"
             "Content-Length: 0\r\n\r\n";
-        ::send(fd, kNotFound, std::strlen(kNotFound), 0);
+        (void)send_all_no_sigpipe(fd, kNotFound, std::strlen(kNotFound));
         return false;
     }
 
@@ -218,11 +261,12 @@ bool RealtimeUiServer::attach_event_client(int fd) {
         "Cache-Control: no-cache\r\n"
         "Connection: keep-alive\r\n"
         "Access-Control-Allow-Origin: *\r\n\r\n";
-    if (::send(fd, kHeaders, std::strlen(kHeaders), 0) <= 0) {
+    if (!send_all_no_sigpipe(fd, kHeaders, std::strlen(kHeaders))) {
         return false;
     }
 
     std::lock_guard lock(mutex_);
+    // Deliberately keep a single active EventSource client.
     close_client_locked();
     client_fd_ = fd;
     return true;
@@ -244,8 +288,7 @@ void RealtimeUiServer::writer_loop() {
         const int fd = client_fd_;
         lock.unlock();
 
-        const ssize_t sent = ::send(fd, frame.data(), frame.size(), 0);
-        if (sent <= 0) {
+        if (!send_all_no_sigpipe(fd, frame)) {
             std::lock_guard relock(mutex_);
             close_client_locked();
         }
