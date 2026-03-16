@@ -1,4 +1,4 @@
-SHELL := /bin/zsh
+SHELL := /bin/sh
 
 ROOT_DIR := $(abspath .)
 BUILD_DIR ?= $(ROOT_DIR)/build

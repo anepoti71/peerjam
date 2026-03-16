@@ -194,6 +194,10 @@ std::vector<CandidatePairMeasurement> CandidateProbeEngine::measure_candidate_pa
                 if (local.addr.ss_family != remote.addr.ss_family) {
                     continue;
                 }
+                // Loopback/non-loopback pairs are unreachable in real network sessions.
+                if (local.is_loopback != remote.is_loopback) {
+                    continue;
+                }
                 PairProbeContext context {
                     .remote = remote,
                     .tracker = MeasurementTracker(

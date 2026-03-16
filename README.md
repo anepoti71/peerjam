@@ -105,6 +105,9 @@ cmake -S . -B build
 cmake --build build
 ```
 
+This repository is self-contained for AOO transport sources via `third_party/aoo`.
+If you keep AOO elsewhere, override with `-DAOO_ROOT=/absolute/path/to/aoo`.
+
 ## Run
 
 Start a public signaling server on a machine reachable from both sites:

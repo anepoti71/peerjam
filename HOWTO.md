@@ -47,8 +47,33 @@ On each machine:
 
 ```bash
 cd peerjam-native
-cmake -S . -B build-portaudio -DPEERJAM_ENABLE_PORTAUDIO=ON
+cmake --fresh -S . -B build-portaudio -DPEERJAM_ENABLE_PORTAUDIO=ON
 cmake --build build-portaudio -j 4
+```
+
+### AOO source dependency (required)
+
+`peerjam-native` builds against AOO sources vendored in this repository at:
+
+- `third_party/aoo`
+
+The build auto-detects `AOO_ROOT` from common in-repo paths. If your layout differs,
+set it explicitly.
+
+Or set an explicit path:
+
+```bash
+cmake --fresh -S . -B build-portaudio \
+  -DPEERJAM_ENABLE_PORTAUDIO=ON \
+  -DAOO_ROOT=/absolute/path/to/aoo
+```
+
+If you copied the repo or build directory from another machine and hit a CMake path mismatch,
+remove the stale cache artifacts and reconfigure:
+
+```bash
+rm -rf build-portaudio/CMakeCache.txt build-portaudio/CMakeFiles
+cmake --fresh -S . -B build-portaudio -DPEERJAM_ENABLE_PORTAUDIO=ON
 ```
 
 If your AOO source tree is not at the default path, set it explicitly:

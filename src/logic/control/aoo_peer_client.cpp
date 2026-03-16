@@ -72,7 +72,15 @@ std::vector<NetworkCandidate> normalize_candidates(
             filtered.push_back(candidates.front());
         }
     } else {
-        filtered = std::move(candidates);
+        // For non-localhost sessions, loopback candidates are not valid peer paths.
+        for (const auto& candidate : candidates) {
+            if (!candidate.is_loopback) {
+                filtered.push_back(candidate);
+            }
+        }
+        if (filtered.empty() && !candidates.empty()) {
+            filtered.push_back(candidates.front());
+        }
     }
 
     std::vector<NetworkCandidate> unique;

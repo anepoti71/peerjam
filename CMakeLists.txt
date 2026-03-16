@@ -7,14 +7,42 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 option(PEERJAM_ENABLE_PORTAUDIO "Enable PortAudio device I/O backend" OFF)
 option(PEERJAM_REQUIRE_OPUS "Fail configuration if Opus is not found" ON)
 
-set(AOO_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../sonobus/deps/aoo" CACHE PATH "Path to AOO source root")
+set(AOO_ROOT "" CACHE PATH "Path to AOO source root")
+set(_AOO_ROOT_CANDIDATES "")
+if(AOO_ROOT)
+  list(APPEND _AOO_ROOT_CANDIDATES "${AOO_ROOT}")
+endif()
+if(DEFINED ENV{AOO_ROOT} AND NOT "$ENV{AOO_ROOT}" STREQUAL "")
+  list(APPEND _AOO_ROOT_CANDIDATES "$ENV{AOO_ROOT}")
+endif()
+list(APPEND _AOO_ROOT_CANDIDATES
+  "${CMAKE_CURRENT_SOURCE_DIR}/third_party/aoo"
+  "${CMAKE_CURRENT_SOURCE_DIR}/deps/aoo"
+)
+set(_AOO_ROOT_RESOLVED "")
+foreach(_AOO_CANDIDATE IN LISTS _AOO_ROOT_CANDIDATES)
+  if(EXISTS "${_AOO_CANDIDATE}/lib/src/client.cpp")
+    set(_AOO_ROOT_RESOLVED "${_AOO_CANDIDATE}")
+    break()
+  endif()
+endforeach()
+if(_AOO_ROOT_RESOLVED)
+  set(AOO_ROOT "${_AOO_ROOT_RESOLVED}" CACHE PATH "Path to AOO source root" FORCE)
+endif()
 set(AOO_OSCPACK_ROOT "${AOO_ROOT}/deps/oscpack")
 set(AOO_MD5_ROOT "${AOO_ROOT}/deps/md5")
-set(PEERJAM_LOCAL_OPUS_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../sonobus/deps/mac/include")
-set(PEERJAM_LOCAL_OPUS_LIB "${CMAKE_CURRENT_SOURCE_DIR}/../sonobus/deps/mac/lib/libopus.a")
+set(PEERJAM_LOCAL_OPUS_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/third_party/opus/include")
+set(PEERJAM_LOCAL_OPUS_LIB "${CMAKE_CURRENT_SOURCE_DIR}/third_party/opus/lib/libopus.a")
 
 if(NOT EXISTS "${AOO_ROOT}/lib/src/client.cpp")
-  message(FATAL_ERROR "AOO root not found at '${AOO_ROOT}'. Set -DAOO_ROOT=/path/to/aoo")
+  string(JOIN "\n  " _AOO_ROOT_HINTS ${_AOO_ROOT_CANDIDATES})
+  message(FATAL_ERROR
+    "AOO root not found.\n"
+    "Checked:\n"
+    "  ${_AOO_ROOT_HINTS}\n"
+    "Set -DAOO_ROOT=/path/to/aoo or export AOO_ROOT=/path/to/aoo.\n"
+    "Recommended: vendor AOO in this repo at third_party/aoo."
+  )
 endif()
 
 set(OPUS_INCLUDE_DIRS "")
@@ -56,7 +84,7 @@ if(NOT OPUS_LIBRARIES AND EXISTS "${PEERJAM_LOCAL_OPUS_LIB}")
 endif()
 
 if(PEERJAM_REQUIRE_OPUS AND (NOT OPUS_INCLUDE_DIRS OR NOT OPUS_LIBRARIES))
-  message(FATAL_ERROR "Opus not found. Install libopus-dev (Linux) or opus (macOS), or provide local Sonobus deps.")
+  message(FATAL_ERROR "Opus not found. Install libopus-dev (Linux) or opus (macOS), or vendor it under third_party/opus.")
 endif()
 
 set(OPUS_INCLUDE_DIRS_NORMALIZED "")

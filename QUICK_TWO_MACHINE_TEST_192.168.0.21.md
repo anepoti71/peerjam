@@ -17,7 +17,7 @@ The flow has 2 phases:
 Run from repo root:
 
 ```bash
-cd /Users/anepoti/workspace/experiments/audio-jam/peerjam-native
+cd /path/to/peerjam-native
 cmake -S . -B build-portaudio -DPEERJAM_ENABLE_PORTAUDIO=ON
 cmake --build build-portaudio -j 4
 ```
@@ -32,7 +32,7 @@ Network requirements:
 ## 2) Start signaling server on Machine A (192.168.0.21)
 
 ```bash
-cd /Users/anepoti/workspace/experiments/audio-jam/peerjam-native
+cd /path/to/peerjam-native
 make server-stop || true
 make server-start
 tail -f .run/log/pj-signal-server.log
@@ -55,7 +55,7 @@ GROUP=lan-test-1
 Machine A:
 
 ```bash
-cd /Users/anepoti/workspace/experiments/audio-jam/peerjam-native
+cd /path/to/peerjam-native
 ./build-portaudio/pj-net-test \
   --config resources/config/local-tester-smoke.conf \
   --server-host 192.168.0.21 \
@@ -67,7 +67,7 @@ cd /Users/anepoti/workspace/experiments/audio-jam/peerjam-native
 Machine B:
 
 ```bash
-cd /Users/anepoti/workspace/experiments/audio-jam/peerjam-native
+cd /path/to/peerjam-native
 ./build-portaudio/pj-net-test \
   --config resources/config/local-tester-smoke.conf \
   --server-host 192.168.0.21 \
@@ -88,14 +88,14 @@ Success criteria:
 Machine A:
 
 ```bash
-cd /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/ui/peerjam-monitor
+cd /path/to/peerjam-native/ui/peerjam-monitor
 python3 -m http.server 8088
 ```
 
 Machine B:
 
 ```bash
-cd /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/ui/peerjam-monitor
+cd /path/to/peerjam-native/ui/peerjam-monitor
 python3 -m http.server 8088
 ```
 
@@ -117,7 +117,7 @@ GROUP=lan-audio-1
 Machine A:
 
 ```bash
-cd /Users/anepoti/workspace/experiments/audio-jam/peerjam-native
+cd /path/to/peerjam-native
 ./build-portaudio/pj-peer-probe \
   --config resources/config/local-tester-smoke.conf \
   --server-host 192.168.0.21 \
@@ -139,7 +139,7 @@ cd /Users/anepoti/workspace/experiments/audio-jam/peerjam-native
 Machine B:
 
 ```bash
-cd /Users/anepoti/workspace/experiments/audio-jam/peerjam-native
+cd /path/to/peerjam-native
 ./build-portaudio/pj-peer-probe \
   --config resources/config/local-tester-smoke.conf \
   --server-host 192.168.0.21 \
@@ -215,7 +215,7 @@ kill <PID>
 Machine A:
 
 ```bash
-cd /Users/anepoti/workspace/experiments/audio-jam/peerjam-native
+cd /path/to/peerjam-native
 pkill -f pj-peer-probe || true
 pkill -f "python3 -m http.server 8088" || true
 make server-stop
@@ -224,7 +224,7 @@ make server-stop
 Machine B:
 
 ```bash
-cd /Users/anepoti/workspace/experiments/audio-jam/peerjam-native
+cd /path/to/peerjam-native
 pkill -f pj-peer-probe || true
 pkill -f "python3 -m http.server 8088" || true
 ```
