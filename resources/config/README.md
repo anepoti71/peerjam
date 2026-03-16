@@ -16,6 +16,7 @@ Additional ready-to-edit examples for a local-server/remote-client setup:
 
 - `resources/config/local-server-public.conf`
 - `resources/config/local-tester-public.conf`
+- `resources/config/local-tester-smoke.conf`
 - `resources/config/remote-tester-public.conf`
 
 Those example files default to:
@@ -30,3 +31,16 @@ Override the default file with:
 ```
 
 The format is a simple `key = value` text file.
+
+## Local tester note
+
+For first-time local `pj-net-test` runs, set:
+
+```ini
+profile.in =
+```
+
+in `resources/config/local-tester-public.conf` unless you already generated a profile file.
+
+`local-tester-smoke.conf` is a relaxed local-only profile for reproducibility/smoke checks.
+Do not use its recommendation thresholds for cross-site readiness decisions.

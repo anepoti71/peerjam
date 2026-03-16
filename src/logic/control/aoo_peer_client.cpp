@@ -88,6 +88,37 @@ std::vector<NetworkCandidate> normalize_candidates(
     return unique;
 }
 
+void align_selected_score_with_probe(PathSelectionReport& report, const MeasurementReport& probe_report) {
+    if (!report.active_path_selected || !probe_report.direct_path_established) {
+        return;
+    }
+    const double latency_ms = probe_report.one_way_ms.p95_ms > 0.0
+        ? probe_report.one_way_ms.p95_ms
+        : probe_report.one_way_ms.average_ms;
+    const double jitter_ms = probe_report.ingress_jitter_ms.p95_ms > 0.0
+        ? probe_report.ingress_jitter_ms.p95_ms
+        : probe_report.ingress_jitter_ms.average_ms;
+    const double loss_percent = probe_report.loss_percent;
+    const double loss_penalty = loss_percent <= 0.0 ? 0.0 : (loss_percent * 8.0);
+    const double loopback_penalty = (report.selected_local.is_loopback || report.selected_remote.is_loopback) ? 0.25 : 0.0;
+    const double relay_penalty = (report.selected_local.type == CandidateType::Relay || report.selected_remote.type == CandidateType::Relay) ? 25.0 : 0.0;
+
+    report.selected_score.latency_ms = latency_ms;
+    report.selected_score.jitter_ms = jitter_ms;
+    report.selected_score.loss_percent = loss_percent;
+    report.selected_score.score = latency_ms + (2.0 * jitter_ms) + loss_penalty + loopback_penalty + relay_penalty;
+
+    const auto selected_local_addr = candidate_address_string(report.selected_local);
+    const auto selected_remote_addr = candidate_address_string(report.selected_remote);
+    for (auto& pair : report.pair_measurements) {
+        if (candidate_address_string(pair.local) == selected_local_addr
+            && candidate_address_string(pair.remote) == selected_remote_addr) {
+            pair.score = report.selected_score;
+            break;
+        }
+    }
+}
+
 }  // namespace
 
 AooPeerClient::AooPeerClient(PeerOptions options)
@@ -554,6 +585,7 @@ int AooPeerClient::run_qualification(bool include_audio) {
         reprobe_thread_.join();
     }
     path_report = path_manager_.current_report();
+    align_selected_score_with_probe(path_report, probe_report);
     if (include_audio && options_.audio.seconds > 0) {
         apply_session_profile(probe_report.recommendation, options_.audio);
         if (ui_server_) {

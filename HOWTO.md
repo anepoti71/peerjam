@@ -203,6 +203,117 @@ Machine B:
   --profile-out bob-session-profile.json
 ```
 
+## 7A. Local Reproducible Test (Single Machine, Loopback)
+
+Use this when you want to verify end-to-end behavior locally before cross-site testing.
+
+1. Ensure the signal server is running:
+
+```bash
+make server-start
+tail -f .run/log/pj-signal-server.log
+```
+
+Expected line:
+- `pj-signal-server listening on TCP/UDP port 11999 and candidate exchange TCP port 12000`
+
+2. Avoid startup warning for missing input profile:
+
+Edit [local-tester-public.conf](resources/config/local-tester-public.conf):
+
+```ini
+profile.in =
+```
+
+3. Start peer A and peer B in two terminals within 15 seconds.
+Use the same group value in both terminals:
+
+```bash
+GROUP=local-test-20260316-1
+```
+
+Terminal A:
+
+```bash
+./build-portaudio/pj-net-test \
+  --config resources/config/local-tester-public.conf \
+  --server-host 127.0.0.1 \
+  --group "$GROUP" \
+  --user alice \
+  --udp-port 12110 \
+  --duration 2 \
+  --interval-ms 20
+```
+
+Terminal B:
+
+```bash
+./build-portaudio/pj-net-test \
+  --config resources/config/local-tester-public.conf \
+  --server-host 127.0.0.1 \
+  --group "$GROUP" \
+  --user bob \
+  --udp-port 12111 \
+  --duration 2 \
+  --interval-ms 20
+```
+
+4. Verify successful completion:
+- both commands exit with code `0`
+- both print final JSON containing `network`, `probe`, and `session_profile`
+
+5. If commands fail to bind UDP ports, clear stale processes and retry:
+
+```bash
+lsof -nP -iUDP:12110
+lsof -nP -iUDP:12111
+kill <PID_FROM_LSOF>
+```
+
+6. Constrained environments:
+- If local sandboxing blocks UDP socket bind/connect, run `pj-net-test` with elevated permissions.
+- Documented requirement: see `.specify/memory/constitution.md` Governance section.
+
+## 7B. Local Smoke Profile (Expect `ready` For Reproducibility)
+
+Use this only for local pipeline validation. It uses relaxed recommendation thresholds.
+
+1. Set a shared group value:
+
+```bash
+GROUP=local-smoke-20260316-1
+```
+
+2. Run in two terminals:
+
+Terminal A:
+
+```bash
+./build-portaudio/pj-net-test \
+  --config resources/config/local-tester-smoke.conf \
+  --group "$GROUP" \
+  --user alice \
+  --udp-port 12110
+```
+
+Terminal B:
+
+```bash
+./build-portaudio/pj-net-test \
+  --config resources/config/local-tester-smoke.conf \
+  --group "$GROUP" \
+  --user bob \
+  --udp-port 12111
+```
+
+3. Expected for smoke pass:
+- both commands exit `0`
+- `session_profile.status` is typically `ready` on both peers
+
+Important:
+- This profile is not a production/cross-site acceptance gate.
+- For real readiness, use `local-tester-public.conf` or remote configs and default thresholds.
+
 ## 8. What The Tester Produces
 
 Each tester prints JSON with:

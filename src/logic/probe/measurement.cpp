@@ -25,7 +25,12 @@ void MeasurementTracker::on_probe_received(std::uint32_t sequence, std::uint64_t
         if (sequence < *last_probe_sequence_) {
             ++reordered_packets_;
         } else if (sequence > *last_probe_sequence_ + 1) {
-            missing_packets_ += sequence - *last_probe_sequence_ - 1;
+            const std::uint32_t gap = sequence - *last_probe_sequence_ - 1;
+            // Ignore large phase jumps (for example warmup->measurement base sequence),
+            // and only count gaps that can belong to this probe window.
+            if (gap <= expected_packets_) {
+                missing_packets_ += gap;
+            }
         }
     }
     if (last_probe_arrival_ns_) {
