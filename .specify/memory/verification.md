@@ -47,6 +47,10 @@ Gap: `PathSelectionReport::to_json()` (`candidate.cpp`) uses `std::string` conca
 inside what could become a polling loop if telemetry is exported continuously. The hot media
 and audio loops themselves are allocation-conscious.
 
+Realtime UI telemetry is now implemented as an optional out-of-band SSE publisher with
+throttled updates (`ui.telemetry_interval_ms`, default 100 ms) so audio-block cadence and
+sub-30 ms end-to-end latency budget are not gated by UI I/O.
+
 Required action: Audit all `std::string` construction in timer-sensitive callbacks and avoid
 continuous JSON serialization from high-frequency loops.
 
@@ -87,21 +91,14 @@ derived from RTT/2.
 
 ### 5. Small Buffers, Controlled Adaptation
 
-**Status: PARTIAL**
+**Status: PASS**
 
-The recommendation engine specifies initial jitter-buffer targets (5 ms aggressive, 5–8 ms
-moderate, 7.5–12 ms marginal) and the AOO sink is configured with a `sink_buffer_ms` option
-passed in from `PeerOptions`.
+`AudioRuntime::maybe_adjust_sink_buffer()` implements a threshold-gated adaptive jitter-buffer
+controller with asymmetric behavior (fast guarded increase, slow decrease), and updates both
+AOO sink buffer size and runtime tracker options.
 
-Gap: There is no adaptive buffer controller. The buffer is set at session start and never
-adjusted at runtime based on ongoing jitter measurements. Buffer fill, underrun, and overrun
-counts are tracked at the audio stream level but are not fed back to a controller that expands
-or contracts the buffer target.
-
-Required action: Implement a buffer adaptation controller that reads
-`AudioStreamReport::buffer_fill_ratio` and adjusts `sink_buffer_ms` via AOO API within the
-bounds defined in the layer specification (5–20 ms), with slow decrease and
-threshold-gated increase.
+The configured session/profile buffer target is now the runtime ceiling, preventing accidental
+shrink below probe-calibrated safety margins due to a hardcoded limit.
 
 ---
 
@@ -124,19 +121,11 @@ against local receive time across packets. Feed this into the drift correction l
 
 ### 7. Gentle Drift Correction
 
-**Status: PARTIAL**
+**Status: PASS**
 
-The `AudioStreamReport` exposes a `drift_estimate_ppm` derived from buffer fill regression.
-AOO provides internal resampling (`dynamic_resampling` flag set in `audio_runtime.cpp`).
-
-Gap: The drift estimate is computed but never used to control AOO's resampling rate. The
-correction feedback loop is incomplete. Emergency recovery actions (sample drop, silence
-insertion) are not defined. The near-unity rate range (`0.9999–1.0001`) is not enforced or
-validated.
-
-Required action: Wire `drift_estimate_ppm` into AOO's `sink_resample_threshold` or an
-equivalent rate-control call. Define an emergency recovery path with logging when drift
-correction is insufficient.
+Drift estimation is continuously sampled in `AudioStreamTracker`, and runtime correction is
+wired through `AudioRuntime::maybe_adjust_drift_control()` by mapping the drift estimate into
+AOO timefilter bandwidth (`aoo_sink_set_timefilter_bandwith`), with periodic low-rate updates.
 
 ---
 
@@ -153,6 +142,8 @@ The system exposes a comprehensive set of metrics:
 - Audio layer: block counts, RMS/peak, buffer fill ratio, drift estimate, event counts for
   loss/reorder/resend/gap (`AudioStreamReport`)
 - All reports serialize to JSON for external consumption
+- Optional realtime UI telemetry exposes live captured waveform, received waveform, and
+  one-way latency/jitter/bandwidth snapshots via a throttled local endpoint
 
 No gaps identified. Audio events (loss, reorder, resend, gap counts) are serialized in
 `AudioStreamReport::to_json()`.
@@ -161,34 +152,23 @@ No gaps identified. Audio events (loss, reorder, resend, gap counts) are seriali
 
 ### 9. Explicit Timing Authority
 
-**Status: FAIL**
+**Status: PASS**
 
-There is no master clock election mechanism. The session does not assign a timing authority
-role. No peer is designated master or follower. The timing authority is implicitly the sender
-(AOO source), but this is not explicit, not exposed in session state, and not transferable.
+`AooPeerClient` performs deterministic two-party timing authority election
+(`elect_timing_authority`), exposes timing state in JSON reports, and resets timing role when
+the control-plane connection drops.
 
-Required action: This is item 3 in `layer-specification.md` next steps. Implement master
-clock election during session setup. Expose the elected role in the session report. Define a
-re-election procedure for when the master peer disconnects.
+Note: current behavior is explicitly based on a two-party session assumption.
 
 ---
 
 ### 10. PCM First, Codec Optional
 
-**Status: PARTIAL**
+**Status: PASS**
 
-The default audio configuration uses PCM float32 (`audio_runtime.cpp`). The recommendation
-engine correctly suggests Opus only for degraded paths. The scoring model penalizes conditions
-that would require Opus.
-
-Gap: Codec switching is recommendation-only. There is no mechanism to actually switch from
-PCM to Opus at runtime based on recommendations. The `AooPeerClient` reads the recommendation
-but does not act on it for codec selection. Opus is a compile-time dependency but never
-instantiated in practice.
-
-Required action: Implement runtime codec negotiation. When the path manager recommends Opus,
-`AooPeerClient` must reconfigure the AOO source format and signal the change to the remote
-peer via the control channel.
+PCM remains default, with runtime codec adaptation enabled in
+`AudioRuntime::maybe_switch_runtime_codec()`. Runtime transitions update both source format
+and sink source option, and are logged for session diagnostics.
 
 ---
 
@@ -206,6 +186,16 @@ The layer boundaries are well-defined and respected:
 
 Cross-layer coupling is explicit: `AooPeerClient` passes references downward and reads
 reports upward. No layer reads another layer's internal state directly.
+
+---
+
+### Build Portability
+
+**Status: PASS**
+
+Build configuration supports Linux and macOS dependency discovery without hardcoded
+single-platform library paths, using package-managed discovery (`pkg-config`/standard CMake
+finders) and explicit override for `AOO_ROOT`.
 
 ---
 
@@ -246,11 +236,13 @@ the classifier returns `not_ready` and recommends against PCM streaming.
 
 | Criterion | Status | Evidence |
 |-----------|--------|----------|
-| P2P UDP media is the primary path | PARTIAL | Structurally yes; path selection not applied to actual routing |
+| P2P UDP media is the primary path | PASS | Selected candidate pair is applied via socket rebind and remote endpoint swap |
 | Performance-sensitive paths are allocation-conscious | PARTIAL | Receiver loop is non-blocking; audio run loop allocates vectors per call |
 | Runtime metrics available for path, transport, sync | PASS | PathSelectionReport, MeasurementReport, AudioStreamReport |
-| Clock drift managed continuously with smooth correction | PARTIAL | Drift estimated; correction loop not wired |
-| Buffering intentionally small and measurable | PARTIAL | Initial sizing correct; no adaptive controller |
+| One-way latency budget guidance remains explicit (`< 30 ms`) | PASS | Readiness thresholds and realtime UI telemetry flag budget breach |
+| Build portability across Linux/macOS | PASS | Dependency discovery uses package-manager compatible CMake finders and override paths |
+| Clock drift managed continuously with smooth correction | PASS | Drift estimate drives AOO timefilter bandwidth updates |
+| Buffering intentionally small and measurable | PASS | Runtime adaptive sink-buffer controller with bounded target |
 | Architecture viable on real public-internet links | PASS | Scoring model, thresholds, and NAT traversal are internet-realistic |
 
 ---
@@ -259,23 +251,20 @@ the classifier returns `not_ready` and recommends against PCM streaming.
 
 | Layer | Status |
 |-------|--------|
-| Session and control | PARTIAL — no state machine, no timing authority election |
-| Candidate discovery and NAT | PARTIAL — no full candidate set exchange via signaling |
-| Path probing and selection | PARTIAL — selection measured but not applied to routing |
-| Media transport | PARTIAL — PCM only; Opus fallback not activated |
-| Audio framing and codec | PARTIAL — codec switching is recommendation-only |
-| Jitter buffer | PARTIAL — initial sizing only; no adaptive controller |
+| Session and control | PARTIAL — timing election is implemented; formal state machine remains |
+| Candidate discovery and NAT | PARTIAL — full candidate set exchange via signaling still incomplete |
+| Path probing and selection | PASS — selected path is applied to active routing |
+| Media transport | PASS — direct path with runtime PCM/Opus operation |
+| Audio framing and codec | PASS — runtime codec switching active |
+| Jitter buffer | PASS — adaptive controller implemented |
 | Clock synchronization | PARTIAL — buffer fill proxy only; no offset tracker |
-| Drift detection and correction | PARTIAL — drift estimated; correction not wired |
-| Audio device | PARTIAL — synthetic tone only; no real device I/O |
-| Monitoring and policy | PASS — comprehensive metrics and classification |
+| Drift detection and correction | PASS — drift estimate wired into AOO timefilter control |
+| Audio device | PASS — selectable capture/playback devices with realtime waveform telemetry |
+| Monitoring and policy | PASS — comprehensive metrics, classification, and realtime UI telemetry |
 
 ## Priority Order for Closing Gaps
 
-1. Apply path selection to actual media routing (Principle 3, acceptance criterion 1)
-2. Wire drift estimate into AOO resampling control (Principle 7, acceptance criterion 4)
-3. Implement adaptive jitter buffer controller (Principle 5, acceptance criterion 5)
-4. Add master clock election (Principle 9)
-5. Implement codec switching from recommendations (Principle 10)
-6. Replace synthetic audio with real device I/O (Layer 9)
-7. Exchange full candidate sets via signaling (Layer 2)
+1. Exchange full candidate sets via signaling (Layer 2)
+2. Add explicit clock offset estimator beyond buffer-fill proxy (Layer 7)
+3. Add timing-regression integration tests for readiness policy thresholds (Principle 1)
+4. Add clearer geographic-latency attribution in session reports (Principle 12)

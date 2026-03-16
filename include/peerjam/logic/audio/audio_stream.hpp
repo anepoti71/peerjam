@@ -3,6 +3,7 @@
 #include "peerjam/logic/probe/measurement.hpp"
 
 #include <cstdint>
+#include <deque>
 #include <string>
 #include <vector>
 
@@ -24,6 +25,8 @@ struct AudioOptions {
     bool dynamic_resampling {true};
     std::string codec {"pcm"};
     bool device_io_enabled {false};
+    int input_device_index {-1};
+    int output_device_index {-1};
     double tone_hz {};
     double tone_level {};
     int source_id {1};
@@ -76,7 +79,12 @@ class AudioStreamTracker {
     std::vector<double> output_rms_;
     std::vector<double> output_peak_;
     std::vector<double> buffer_fill_ratio_;
-    std::vector<double> buffer_fill_time_s_;
+    std::deque<double> drift_time_s_;
+    std::deque<double> drift_ratio_;
+    double drift_sum_x_ {};
+    double drift_sum_y_ {};
+    double drift_sum_xx_ {};
+    double drift_sum_xy_ {};
     std::uint32_t rendered_blocks_ {};
     std::uint32_t active_blocks_ {};
     std::uint32_t play_events_ {};

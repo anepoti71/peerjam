@@ -33,6 +33,7 @@ CMakeFiles/peerjam_measure.dir/src/logic/audio/audio_runtime.cpp.o: \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_uintptr_t.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_types/_intmax_t.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_types/_uintmax_t.h \
+  /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/include/peerjam/logic/audio/capture/audio_capture_source.hpp \
   /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/include/peerjam/logic/audio/audio_stream.hpp \
   /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/include/peerjam/logic/probe/measurement.hpp \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/cstdint \
@@ -966,6 +967,7 @@ CMakeFiles/peerjam_measure.dir/src/logic/audio/audio_runtime.cpp.o: \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/print \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/unistd.h \
   /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/include/peerjam/logic/probe/recommendation_policy_options.hpp \
+  /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/include/peerjam/logic/audio/playback/audio_playback_sink.hpp \
   /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/include/peerjam/logic/control/peer_types.hpp \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/socket.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/constrained_ctypes.h \
@@ -1009,12 +1011,11 @@ CMakeFiles/peerjam_measure.dir/src/logic/audio/audio_runtime.cpp.o: \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__charconv/to_chars.h \
   /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/include/peerjam/common/logger.hpp \
   /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/../sonobus/deps/aoo/lib/aoo/aoo_opus.h \
-  /opt/homebrew/include/opus/opus_multistream.h \
-  /opt/homebrew/include/opus/opus.h \
-  /opt/homebrew/include/opus/opus_types.h \
-  /opt/homebrew/include/opus/opus_defines.h \
+  /opt/homebrew/Cellar/opus/1.6/include/opus/opus_multistream.h \
+  /opt/homebrew/Cellar/opus/1.6/include/opus/opus.h \
+  /opt/homebrew/Cellar/opus/1.6/include/opus/opus_types.h \
+  /opt/homebrew/Cellar/opus/1.6/include/opus/opus_defines.h \
   /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/../sonobus/deps/aoo/lib/aoo/aoo_pcm.h \
-  /opt/homebrew/include/portaudio.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/thread \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__thread/this_thread.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__thread/thread.h \

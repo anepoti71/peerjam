@@ -99,8 +99,8 @@ pj-signal-server: libaoo.a
 pj-signal-server: libpeerjam_measure.a
 pj-signal-server: libaoo.a
 pj-signal-server: liboscpack.a
-pj-signal-server: /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/../sonobus/deps/mac/lib/libopus.a
-pj-signal-server: /opt/homebrew/lib/libportaudio.dylib
+pj-signal-server: /opt/homebrew/Cellar/opus/1.6/lib/libopus.dylib
+pj-signal-server: /opt/homebrew/Cellar/portaudio/19.7.0/lib/libportaudio.dylib
 pj-signal-server: CMakeFiles/pj-signal-server.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/build-portaudio/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable pj-signal-server"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/pj-signal-server.dir/link.txt --verbose=$(VERBOSE)

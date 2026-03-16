@@ -33,10 +33,10 @@ CMakeFiles/aoo.dir/Users/anepoti/workspace/experiments/audio-jam/sonobus/deps/ao
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_uintptr_t.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_types/_intmax_t.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_types/_uintmax_t.h \
-  /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/../sonobus/deps/mac/include/opus/opus_multistream.h \
-  /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/../sonobus/deps/mac/include/opus/opus.h \
-  /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/../sonobus/deps/mac/include/opus/opus_types.h \
-  /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/../sonobus/deps/mac/include/opus/opus_defines.h \
+  /opt/homebrew/Cellar/opus/1.6/include/opus/opus_multistream.h \
+  /opt/homebrew/Cellar/opus/1.6/include/opus/opus.h \
+  /opt/homebrew/Cellar/opus/1.6/include/opus/opus_types.h \
+  /opt/homebrew/Cellar/opus/1.6/include/opus/opus_defines.h \
   /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/../sonobus/deps/aoo/lib/aoo/aoo_utils.hpp \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/cstring \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__cstddef/size_t.h \

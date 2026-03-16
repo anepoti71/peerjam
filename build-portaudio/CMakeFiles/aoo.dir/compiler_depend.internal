@@ -2089,10 +2089,10 @@ CMakeFiles/aoo.dir/Users/anepoti/workspace/experiments/audio-jam/sonobus/deps/ao
  /Users/anepoti/workspace/experiments/audio-jam/sonobus/deps/aoo/lib/aoo/aoo_opus.h
  /Users/anepoti/workspace/experiments/audio-jam/sonobus/deps/aoo/lib/aoo/aoo_types.h
  /Users/anepoti/workspace/experiments/audio-jam/sonobus/deps/aoo/lib/aoo/aoo_utils.hpp
- /Users/anepoti/workspace/experiments/audio-jam/sonobus/deps/mac/include/opus/opus.h
- /Users/anepoti/workspace/experiments/audio-jam/sonobus/deps/mac/include/opus/opus_defines.h
- /Users/anepoti/workspace/experiments/audio-jam/sonobus/deps/mac/include/opus/opus_multistream.h
- /Users/anepoti/workspace/experiments/audio-jam/sonobus/deps/mac/include/opus/opus_types.h
+ /opt/homebrew/Cellar/opus/1.6/include/opus/opus.h
+ /opt/homebrew/Cellar/opus/1.6/include/opus/opus_defines.h
+ /opt/homebrew/Cellar/opus/1.6/include/opus/opus_multistream.h
+ /opt/homebrew/Cellar/opus/1.6/include/opus/opus_types.h
 
 CMakeFiles/aoo.dir/Users/anepoti/workspace/experiments/audio-jam/sonobus/deps/aoo/lib/src/codec_pcm.cpp.o
  /Users/anepoti/workspace/experiments/audio-jam/sonobus/deps/aoo/lib/src/codec_pcm.cpp

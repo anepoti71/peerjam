@@ -1,20 +1,41 @@
 #pragma once
 
 #include "aoo/aoo.h"
+#include "peerjam/logic/audio/capture/audio_capture_source.hpp"
+#include "peerjam/logic/audio/playback/audio_playback_sink.hpp"
 #include "peerjam/logic/audio/audio_stream.hpp"
 #include "peerjam/logic/control/peer_types.hpp"
 #include "peerjam/logic/transport/udp_datagram_socket.hpp"
 
 #include <cstddef>
 #include <cstdint>
+#include <array>
 #include <chrono>
+#include <mutex>
 #include <memory>
+#include <optional>
 #include <vector>
 
 namespace peerjam {
 
 class AudioRuntime {
   public:
+    struct RealtimeAudioSnapshot {
+        std::uint64_t steady_time_ns {};
+        float input_rms {};
+        float input_peak {};
+        float buffer_fill_ratio {};
+        std::uint32_t rendered_blocks {};
+        std::uint32_t lost_blocks {};
+        std::uint32_t gap_blocks {};
+        double drift_ppm {};
+        std::array<float, 64> waveform {};
+        std::array<float, 64> received_waveform {};
+        int waveform_points {};
+        int received_waveform_points {};
+        std::string codec;
+    };
+
     struct TickHook {
         void* user {};
         void (*fn)(void*) {nullptr};
@@ -31,6 +52,7 @@ class AudioRuntime {
     void teardown();
     bool handle_datagram(const std::uint8_t* data, std::size_t size);
     AudioStreamReport run(TickHook tick_hook);
+    std::optional<RealtimeAudioSnapshot> latest_snapshot() const;
 
   private:
     struct ReplyContext {
@@ -51,7 +73,6 @@ class AudioRuntime {
     void maybe_adjust_drift_control(std::chrono::steady_clock::time_point now);
     void maybe_adjust_sink_buffer(float buffer_fill, std::chrono::steady_clock::time_point now);
     AudioStreamReport run_synthetic(TickHook tick_hook);
-    AudioStreamReport run_device_io(TickHook tick_hook);
 
     AudioOptions options_;
     ReplyContext reply_context_;
@@ -63,7 +84,8 @@ class AudioRuntime {
     std::vector<std::vector<float>> sink_channels_;
     std::vector<float*> sink_channel_ptrs_;
     std::vector<float> sink_interleaved_;
-    double tone_phase_ {};
+    std::unique_ptr<AudioCaptureSource> capture_source_;
+    std::unique_ptr<AudioPlaybackSink> playback_sink_;
     int current_sink_buffer_ms_ {};
     int max_sink_buffer_ms_ {};
     int low_fill_streak_ {};
@@ -75,6 +97,10 @@ class AudioRuntime {
     std::string active_codec_ {"pcm"};
     std::chrono::steady_clock::time_point next_drift_adjust_at_ {};
     std::chrono::steady_clock::time_point next_buffer_adjust_at_ {};
+    mutable std::mutex snapshot_mutex_;
+    RealtimeAudioSnapshot latest_snapshot_;
+    bool has_snapshot_ {false};
+    std::chrono::steady_clock::time_point next_snapshot_at_ {};
 };
 
 }  // namespace peerjam

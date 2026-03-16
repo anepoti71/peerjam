@@ -698,6 +698,54 @@ src/logic/audio/audio_stream.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/peerjam_measure.dir/build.make CMakeFiles/peerjam_measure.dir/src/logic/audio/audio_stream.cpp.s
 .PHONY : src/logic/audio/audio_stream.cpp.s
 
+src/logic/audio/capture/audio_capture_source.o: src/logic/audio/capture/audio_capture_source.cpp.o
+.PHONY : src/logic/audio/capture/audio_capture_source.o
+
+# target to build an object file
+src/logic/audio/capture/audio_capture_source.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/peerjam_measure.dir/build.make CMakeFiles/peerjam_measure.dir/src/logic/audio/capture/audio_capture_source.cpp.o
+.PHONY : src/logic/audio/capture/audio_capture_source.cpp.o
+
+src/logic/audio/capture/audio_capture_source.i: src/logic/audio/capture/audio_capture_source.cpp.i
+.PHONY : src/logic/audio/capture/audio_capture_source.i
+
+# target to preprocess a source file
+src/logic/audio/capture/audio_capture_source.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/peerjam_measure.dir/build.make CMakeFiles/peerjam_measure.dir/src/logic/audio/capture/audio_capture_source.cpp.i
+.PHONY : src/logic/audio/capture/audio_capture_source.cpp.i
+
+src/logic/audio/capture/audio_capture_source.s: src/logic/audio/capture/audio_capture_source.cpp.s
+.PHONY : src/logic/audio/capture/audio_capture_source.s
+
+# target to generate assembly for a file
+src/logic/audio/capture/audio_capture_source.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/peerjam_measure.dir/build.make CMakeFiles/peerjam_measure.dir/src/logic/audio/capture/audio_capture_source.cpp.s
+.PHONY : src/logic/audio/capture/audio_capture_source.cpp.s
+
+src/logic/audio/playback/audio_playback_sink.o: src/logic/audio/playback/audio_playback_sink.cpp.o
+.PHONY : src/logic/audio/playback/audio_playback_sink.o
+
+# target to build an object file
+src/logic/audio/playback/audio_playback_sink.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/peerjam_measure.dir/build.make CMakeFiles/peerjam_measure.dir/src/logic/audio/playback/audio_playback_sink.cpp.o
+.PHONY : src/logic/audio/playback/audio_playback_sink.cpp.o
+
+src/logic/audio/playback/audio_playback_sink.i: src/logic/audio/playback/audio_playback_sink.cpp.i
+.PHONY : src/logic/audio/playback/audio_playback_sink.i
+
+# target to preprocess a source file
+src/logic/audio/playback/audio_playback_sink.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/peerjam_measure.dir/build.make CMakeFiles/peerjam_measure.dir/src/logic/audio/playback/audio_playback_sink.cpp.i
+.PHONY : src/logic/audio/playback/audio_playback_sink.cpp.i
+
+src/logic/audio/playback/audio_playback_sink.s: src/logic/audio/playback/audio_playback_sink.cpp.s
+.PHONY : src/logic/audio/playback/audio_playback_sink.s
+
+# target to generate assembly for a file
+src/logic/audio/playback/audio_playback_sink.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/peerjam_measure.dir/build.make CMakeFiles/peerjam_measure.dir/src/logic/audio/playback/audio_playback_sink.cpp.s
+.PHONY : src/logic/audio/playback/audio_playback_sink.cpp.s
+
 src/logic/control/aoo_peer_client.o: src/logic/control/aoo_peer_client.cpp.o
 .PHONY : src/logic/control/aoo_peer_client.o
 
@@ -962,6 +1010,30 @@ src/logic/transport/udp_datagram_socket.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/peerjam_measure.dir/build.make CMakeFiles/peerjam_measure.dir/src/logic/transport/udp_datagram_socket.cpp.s
 .PHONY : src/logic/transport/udp_datagram_socket.cpp.s
 
+src/logic/ui/realtime_ui_server.o: src/logic/ui/realtime_ui_server.cpp.o
+.PHONY : src/logic/ui/realtime_ui_server.o
+
+# target to build an object file
+src/logic/ui/realtime_ui_server.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/peerjam_measure.dir/build.make CMakeFiles/peerjam_measure.dir/src/logic/ui/realtime_ui_server.cpp.o
+.PHONY : src/logic/ui/realtime_ui_server.cpp.o
+
+src/logic/ui/realtime_ui_server.i: src/logic/ui/realtime_ui_server.cpp.i
+.PHONY : src/logic/ui/realtime_ui_server.i
+
+# target to preprocess a source file
+src/logic/ui/realtime_ui_server.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/peerjam_measure.dir/build.make CMakeFiles/peerjam_measure.dir/src/logic/ui/realtime_ui_server.cpp.i
+.PHONY : src/logic/ui/realtime_ui_server.cpp.i
+
+src/logic/ui/realtime_ui_server.s: src/logic/ui/realtime_ui_server.cpp.s
+.PHONY : src/logic/ui/realtime_ui_server.s
+
+# target to generate assembly for a file
+src/logic/ui/realtime_ui_server.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/peerjam_measure.dir/build.make CMakeFiles/peerjam_measure.dir/src/logic/ui/realtime_ui_server.cpp.s
+.PHONY : src/logic/ui/realtime_ui_server.cpp.s
+
 src/net_test_main.o: src/net_test_main.cpp.o
 .PHONY : src/net_test_main.o
 
@@ -1111,6 +1183,12 @@ help:
 	@echo "... src/logic/audio/audio_stream.o"
 	@echo "... src/logic/audio/audio_stream.i"
 	@echo "... src/logic/audio/audio_stream.s"
+	@echo "... src/logic/audio/capture/audio_capture_source.o"
+	@echo "... src/logic/audio/capture/audio_capture_source.i"
+	@echo "... src/logic/audio/capture/audio_capture_source.s"
+	@echo "... src/logic/audio/playback/audio_playback_sink.o"
+	@echo "... src/logic/audio/playback/audio_playback_sink.i"
+	@echo "... src/logic/audio/playback/audio_playback_sink.s"
 	@echo "... src/logic/control/aoo_peer_client.o"
 	@echo "... src/logic/control/aoo_peer_client.i"
 	@echo "... src/logic/control/aoo_peer_client.s"
@@ -1144,6 +1222,9 @@ help:
 	@echo "... src/logic/transport/udp_datagram_socket.o"
 	@echo "... src/logic/transport/udp_datagram_socket.i"
 	@echo "... src/logic/transport/udp_datagram_socket.s"
+	@echo "... src/logic/ui/realtime_ui_server.o"
+	@echo "... src/logic/ui/realtime_ui_server.i"
+	@echo "... src/logic/ui/realtime_ui_server.s"
 	@echo "... src/net_test_main.o"
 	@echo "... src/net_test_main.i"
 	@echo "... src/net_test_main.s"

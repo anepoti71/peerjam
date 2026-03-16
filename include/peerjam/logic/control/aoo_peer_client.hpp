@@ -8,6 +8,7 @@
 #include "peerjam/logic/network/path_manager.hpp"
 #include "peerjam/logic/probe/probe_runtime.hpp"
 #include "peerjam/logic/transport/udp_datagram_socket.hpp"
+#include "peerjam/logic/ui/realtime_ui_server.hpp"
 
 #include <atomic>
 #include <chrono>
@@ -42,6 +43,9 @@ class AooPeerClient {
     void try_fetch_remote_candidates(const std::string& peer_user);
     std::shared_ptr<RemoteEndpoint> load_remote_endpoint() const;
     bool apply_selected_path(const PathSelectionReport& report);
+    void update_selected_path_metrics(const PathSelectionReport& report);
+    void maybe_publish_ui_telemetry();
+    static double estimated_bandwidth_kbps(const std::string& codec);
     void elect_timing_authority(const std::string& remote_user);
     std::string timing_state_json() const;
     void handle_client_event(const aoo_event* event);
@@ -69,6 +73,10 @@ class AooPeerClient {
     bool remote_candidates_fetched_ {false};
     std::chrono::steady_clock::time_point next_candidate_fetch_at_ {};
     std::uint64_t session_token_ {};
+    std::unique_ptr<RealtimeUiServer> ui_server_;
+    std::atomic<double> selected_latency_ms_ {0.0};
+    std::atomic<double> selected_jitter_ms_ {0.0};
+    std::chrono::steady_clock::time_point next_ui_publish_at_ {};
     mutable std::mutex timing_mutex_;
     std::string timing_role_ {"unknown"};
     std::string timing_master_user_ {"unknown"};

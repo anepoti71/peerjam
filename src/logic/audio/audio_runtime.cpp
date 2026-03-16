@@ -5,10 +5,6 @@
 #include "aoo/aoo_pcm.h"
 #include "aoo/aoo_types.h"
 
-#if defined(PEERJAM_HAS_PORTAUDIO)
-#include <portaudio.h>
-#endif
-
 #include <algorithm>
 #include <chrono>
 #include <cmath>
@@ -16,6 +12,7 @@
 
 namespace peerjam {
 namespace {
+constexpr auto kUiSnapshotInterval = std::chrono::milliseconds(100);
 
 bool use_opus_codec(const std::string& codec) {
     return codec == "opus-lowdelay" || codec == "opus";
@@ -92,7 +89,7 @@ int AudioRuntime::setup(const UdpDatagramSocket& socket, const std::shared_ptr<R
     aoo_sink_set_resend_maxnumframes(sink_, options_.resend_max_frames);
     aoo_sink_set_option(sink_, aoo_opt_dynamic_resampling, (void*)&dynamic_resampling, sizeof(dynamic_resampling));
     current_sink_buffer_ms_ = options_.sink_buffer_ms;
-    max_sink_buffer_ms_ = std::max(options_.sink_buffer_ms, 20);
+    max_sink_buffer_ms_ = options_.sink_buffer_ms;
     low_fill_streak_ = 0;
     high_fill_streak_ = 0;
     const auto now = std::chrono::steady_clock::now();
@@ -102,6 +99,8 @@ int AudioRuntime::setup(const UdpDatagramSocket& socket, const std::shared_ptr<R
     codec_stable_since_ = now;
     last_codec_eval_lost_blocks_ = 0;
     last_codec_eval_gap_blocks_ = 0;
+    next_snapshot_at_ = now;
+    has_snapshot_ = false;
 
     aoo_source_add_sink(source_, &reply_context_, options_.sink_id, &AudioRuntime::reply_callback);
     aoo_sink_invite_source(sink_, &reply_context_, options_.source_id, &AudioRuntime::reply_callback);
@@ -116,13 +115,46 @@ int AudioRuntime::setup(const UdpDatagramSocket& socket, const std::shared_ptr<R
         sink_channel_ptrs_.push_back(sink_channels_[static_cast<std::size_t>(ch)].data());
     }
     sink_interleaved_.assign(static_cast<std::size_t>(options_.frame_samples * options_.channels), 0.0f);
-    tone_phase_ = 0.0;
+    capture_source_ = make_audio_capture_source(options_);
+    playback_sink_ = make_audio_playback_sink(options_);
+    if (!capture_source_) {
+        return 1;
+    }
+    if (!capture_source_->start(options_)) {
+        if (options_.device_io_enabled) {
+            PJ_LOG(Info, "audio capture source failed to start; falling back to synthetic input");
+            AudioOptions fallback = options_;
+            fallback.device_io_enabled = false;
+            capture_source_ = make_audio_capture_source(fallback);
+            if (!capture_source_ || !capture_source_->start(fallback)) {
+                return 1;
+            }
+        } else {
+            return 1;
+        }
+    }
+    if (playback_sink_ && !playback_sink_->start(options_)) {
+        PJ_LOG(Info, "audio playback sink failed to start; received audio playback disabled");
+        playback_sink_.reset();
+    }
     return 0;
 }
 
 void AudioRuntime::teardown() {
     source_channel_ptrs_.clear();
     sink_channel_ptrs_.clear();
+    {
+        std::lock_guard lock(snapshot_mutex_);
+        has_snapshot_ = false;
+    }
+    if (capture_source_) {
+        capture_source_->stop();
+        capture_source_.reset();
+    }
+    if (playback_sink_) {
+        playback_sink_->stop();
+        playback_sink_.reset();
+    }
     source_channels_.clear();
     sink_channels_.clear();
     sink_interleaved_.clear();
@@ -158,9 +190,6 @@ bool AudioRuntime::handle_datagram(const std::uint8_t* data, std::size_t size) {
 }
 
 AudioStreamReport AudioRuntime::run(TickHook tick_hook) {
-    if (options_.device_io_enabled) {
-        return run_device_io(tick_hook);
-    }
     return run_synthetic(tick_hook);
 }
 
@@ -169,8 +198,7 @@ AudioStreamReport AudioRuntime::run_synthetic(TickHook tick_hook) {
         return {};
     }
 
-    const double pi = std::acos(-1.0);
-    const double phase_inc = 2.0 * pi * options_.tone_hz / static_cast<double>(options_.sample_rate_hz);
+    std::vector<float> input_interleaved(static_cast<std::size_t>(options_.frame_samples * options_.channels), 0.0f);
     const auto block_period = std::chrono::duration<double>(
         static_cast<double>(options_.frame_samples) / static_cast<double>(options_.sample_rate_hz)
     );
@@ -178,102 +206,19 @@ AudioStreamReport AudioRuntime::run_synthetic(TickHook tick_hook) {
     auto next_block = std::chrono::steady_clock::now();
 
     while (std::chrono::steady_clock::now() < deadline) {
-        for (int i = 0; i < options_.frame_samples; ++i) {
-            const float sample = static_cast<float>(std::sin(tone_phase_) * options_.tone_level);
-            tone_phase_ += phase_inc;
-            if (tone_phase_ >= 2.0 * pi) {
-                tone_phase_ -= 2.0 * pi;
-            }
-            for (int ch = 0; ch < options_.channels; ++ch) {
-                source_channels_[static_cast<std::size_t>(ch)][static_cast<std::size_t>(i)] = sample;
-            }
-        }
-
-        const auto ntp_now = aoo_osctime_get();
-        const auto steady_now_ns = now_ns();
-        aoo_source_process(source_, reinterpret_cast<const aoo_sample**>(source_channel_ptrs_.data()), options_.frame_samples, ntp_now);
-        aoo_source_send(source_);
-        aoo_sink_process(sink_, reinterpret_cast<aoo_sample**>(sink_channel_ptrs_.data()), options_.frame_samples, ntp_now);
-        aoo_sink_send(sink_);
-
-        for (int i = 0; i < options_.frame_samples; ++i) {
-            for (int ch = 0; ch < options_.channels; ++ch) {
-                sink_interleaved_[static_cast<std::size_t>(i * options_.channels + ch)] =
-                    sink_channels_[static_cast<std::size_t>(ch)][static_cast<std::size_t>(i)];
-            }
-        }
-        tracker_.on_render_block(sink_interleaved_.data(), options_.frame_samples, options_.channels, steady_now_ns);
-
-        float buffer_fill = 0.0f;
-        if (aoo_sink_get_sourceoption(sink_, &reply_context_, options_.source_id, aoo_opt_buffer_fill_ratio, &buffer_fill, sizeof(buffer_fill)) > 0) {
-            tracker_.on_buffer_fill(buffer_fill, steady_now_ns);
-            maybe_adjust_sink_buffer(buffer_fill, std::chrono::steady_clock::now());
-            maybe_switch_runtime_codec(std::chrono::steady_clock::now(), buffer_fill);
-        }
-        maybe_adjust_drift_control(std::chrono::steady_clock::now());
-
-        aoo_source_handle_events(source_, &AudioRuntime::source_event_handler, this);
-        aoo_sink_handle_events(sink_, &AudioRuntime::sink_event_handler, this);
-        if (tick_hook.fn) {
-            tick_hook.fn(tick_hook.user);
-        }
-
-        next_block += std::chrono::duration_cast<std::chrono::steady_clock::duration>(block_period);
-        std::this_thread::sleep_until(next_block);
-    }
-
-    return tracker_.finish();
-}
-
-AudioStreamReport AudioRuntime::run_device_io(TickHook tick_hook) {
-#if !defined(PEERJAM_HAS_PORTAUDIO)
-    PJ_LOG(Info, "audio.device_io_enabled=true but PortAudio backend is not compiled; falling back to synthetic mode");
-    return run_synthetic(tick_hook);
-#else
-    if (!source_ || !sink_) {
-        return {};
-    }
-
-    if (Pa_Initialize() != paNoError) {
-        return {};
-    }
-    PaStream* stream = nullptr;
-    const auto stream_err = Pa_OpenDefaultStream(
-        &stream,
-        options_.channels,
-        options_.channels,
-        paFloat32,
-        static_cast<double>(options_.sample_rate_hz),
-        options_.frame_samples,
-        nullptr,
-        nullptr
-    );
-    if (stream_err != paNoError || !stream) {
-        Pa_Terminate();
-        return {};
-    }
-    if (Pa_StartStream(stream) != paNoError) {
-        Pa_CloseStream(stream);
-        Pa_Terminate();
-        return {};
-    }
-
-    std::vector<float> input_interleaved(static_cast<std::size_t>(options_.frame_samples * options_.channels), 0.0f);
-    const long frames_per_block = static_cast<long>(options_.frame_samples);
-    const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(options_.seconds);
-    while (std::chrono::steady_clock::now() < deadline) {
-        const long readable = Pa_GetStreamReadAvailable(stream);
-        if (readable < 0) {
+        if (!capture_source_ || !capture_source_->read_interleaved(input_interleaved.data(), options_.frame_samples, options_.channels)) {
             break;
         }
-        if (readable < frames_per_block) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-            continue;
+        double input_sum_sq = 0.0;
+        double input_peak = 0.0;
+        for (float sample : input_interleaved) {
+            const double value = static_cast<double>(sample);
+            input_sum_sq += value * value;
+            input_peak = std::max(input_peak, std::abs(value));
         }
-        if (Pa_ReadStream(stream, input_interleaved.data(), options_.frame_samples) != paNoError) {
-            break;
-        }
-
+        const float input_rms = input_interleaved.empty() ? 0.0f
+            : static_cast<float>(std::sqrt(input_sum_sq / static_cast<double>(input_interleaved.size())));
+        const float input_peak_f = static_cast<float>(input_peak);
         for (int i = 0; i < options_.frame_samples; ++i) {
             for (int ch = 0; ch < options_.channels; ++ch) {
                 source_channels_[static_cast<std::size_t>(ch)][static_cast<std::size_t>(i)] =
@@ -294,6 +239,9 @@ AudioStreamReport AudioRuntime::run_device_io(TickHook tick_hook) {
                     sink_channels_[static_cast<std::size_t>(ch)][static_cast<std::size_t>(i)];
             }
         }
+        if (playback_sink_) {
+            (void)playback_sink_->write_interleaved(sink_interleaved_.data(), options_.frame_samples, options_.channels);
+        }
         tracker_.on_render_block(sink_interleaved_.data(), options_.frame_samples, options_.channels, steady_now_ns);
 
         float buffer_fill = 0.0f;
@@ -303,6 +251,41 @@ AudioStreamReport AudioRuntime::run_device_io(TickHook tick_hook) {
             maybe_switch_runtime_codec(std::chrono::steady_clock::now(), buffer_fill);
         }
         maybe_adjust_drift_control(std::chrono::steady_clock::now());
+        const auto now = std::chrono::steady_clock::now();
+        if (now >= next_snapshot_at_) {
+            RealtimeAudioSnapshot snapshot;
+            snapshot.steady_time_ns = steady_now_ns;
+            snapshot.input_rms = input_rms;
+            snapshot.input_peak = input_peak_f;
+            snapshot.buffer_fill_ratio = buffer_fill;
+            snapshot.rendered_blocks = tracker_.current_rendered_blocks();
+            snapshot.lost_blocks = tracker_.current_lost_blocks();
+            snapshot.gap_blocks = tracker_.current_gap_blocks();
+            snapshot.drift_ppm = tracker_.current_drift_ppm_estimate();
+            snapshot.codec = active_codec_;
+            snapshot.waveform_points = static_cast<int>(snapshot.waveform.size());
+            snapshot.received_waveform_points = static_cast<int>(snapshot.received_waveform.size());
+            if (options_.channels > 0 && options_.frame_samples > 0) {
+                for (int i = 0; i < snapshot.waveform_points; ++i) {
+                    const int src_frame = (i * options_.frame_samples) / snapshot.waveform_points;
+                    const int safe_frame = std::clamp(src_frame, 0, options_.frame_samples - 1);
+                    snapshot.waveform[static_cast<std::size_t>(i)] =
+                        source_channels_[0][static_cast<std::size_t>(safe_frame)];
+                }
+                for (int i = 0; i < snapshot.received_waveform_points; ++i) {
+                    const int src_frame = (i * options_.frame_samples) / snapshot.received_waveform_points;
+                    const int safe_frame = std::clamp(src_frame, 0, options_.frame_samples - 1);
+                    snapshot.received_waveform[static_cast<std::size_t>(i)] =
+                        sink_channels_[0][static_cast<std::size_t>(safe_frame)];
+                }
+            }
+            {
+                std::lock_guard lock(snapshot_mutex_);
+                latest_snapshot_ = std::move(snapshot);
+                has_snapshot_ = true;
+            }
+            next_snapshot_at_ = now + kUiSnapshotInterval;
+        }
 
         aoo_source_handle_events(source_, &AudioRuntime::source_event_handler, this);
         aoo_sink_handle_events(sink_, &AudioRuntime::sink_event_handler, this);
@@ -310,24 +293,19 @@ AudioStreamReport AudioRuntime::run_device_io(TickHook tick_hook) {
             tick_hook.fn(tick_hook.user);
         }
 
-        const long writable = Pa_GetStreamWriteAvailable(stream);
-        if (writable < 0) {
-            break;
-        }
-        if (writable < frames_per_block) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-            continue;
-        }
-        if (Pa_WriteStream(stream, sink_interleaved_.data(), options_.frame_samples) != paNoError) {
-            break;
-        }
+        next_block += std::chrono::duration_cast<std::chrono::steady_clock::duration>(block_period);
+        std::this_thread::sleep_until(next_block);
     }
 
-    Pa_StopStream(stream);
-    Pa_CloseStream(stream);
-    Pa_Terminate();
     return tracker_.finish();
-#endif
+}
+
+std::optional<AudioRuntime::RealtimeAudioSnapshot> AudioRuntime::latest_snapshot() const {
+    std::lock_guard lock(snapshot_mutex_);
+    if (!has_snapshot_) {
+        return std::nullopt;
+    }
+    return latest_snapshot_;
 }
 
 int32_t AudioRuntime::reply_callback(void* user, const char* data, int32_t size) {
@@ -425,7 +403,7 @@ bool AudioRuntime::set_source_codec(const std::string& codec) {
             return false;
         }
         if (sink_) {
-            aoo_sink_set_sourceoption(sink_, &reply_context_, options_.source_id, aoo_opt_format, &format, sizeof(format));
+            aoo_sink_set_sourceoption(sink_, &reply_context_, options_.source_id, aoo_opt_format, &format, sizeof(aoo_format_opus));
         }
         active_codec_ = "opus-lowdelay";
     } else {
@@ -439,7 +417,7 @@ bool AudioRuntime::set_source_codec(const std::string& codec) {
             return false;
         }
         if (sink_) {
-            aoo_sink_set_sourceoption(sink_, &reply_context_, options_.source_id, aoo_opt_format, &format, sizeof(format));
+            aoo_sink_set_sourceoption(sink_, &reply_context_, options_.source_id, aoo_opt_format, &format, sizeof(aoo_format_pcm));
         }
         active_codec_ = "pcm";
     }

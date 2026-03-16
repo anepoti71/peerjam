@@ -4,7 +4,7 @@
 # compile CXX with /usr/bin/c++
 CXX_DEFINES = -DAOO_BUILD -DAOO_STATIC -DPEERJAM_HAS_PORTAUDIO=1
 
-CXX_INCLUDES = -I/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/include -I/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/../sonobus/deps/aoo/lib -I/opt/homebrew/include -I/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/../sonobus/deps/aoo/deps -I/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/../sonobus/deps/aoo/deps/oscpack -I/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/../sonobus/deps/aoo/deps/md5 -I/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/../sonobus/deps/mac/include
+CXX_INCLUDES = -I/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/include -I/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/../sonobus/deps/aoo/lib -I/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/../sonobus/deps/aoo/deps -I/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/../sonobus/deps/aoo/deps/oscpack -I/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/../sonobus/deps/aoo/deps/md5 -I/opt/homebrew/Cellar/opus/1.6/include -isystem /opt/homebrew/Cellar/opus/1.6/include/opus -isystem /opt/homebrew/Cellar/portaudio/19.7.0/include
 
 CXX_FLAGS = -std=c++20
 

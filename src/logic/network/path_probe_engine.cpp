@@ -123,6 +123,11 @@ std::vector<CandidatePairMeasurement> CandidateProbeEngine::measure_candidate_pa
     measurements.reserve(local_candidates.size() * remote_candidates.size());
     for (const auto& local : local_candidates) {
         for (const auto& remote : remote_candidates) {
+            // Cross-family pairs (IPv4 local with IPv6 remote or vice versa) are not valid
+            // direct-path candidates for this probe socket model.
+            if (local.addr.ss_family != remote.addr.ss_family) {
+                continue;
+            }
             CandidatePairMeasurement pair;
             pair.local = local;
             pair.remote = remote;

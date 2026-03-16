@@ -14,6 +14,9 @@
 # EXTERNAL cache entries
 ########################
 
+//Path to AOO source root
+AOO_ROOT:PATH=/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/../sonobus/deps/aoo
+
 //Path to a program.
 CMAKE_ADDR2LINE:FILEPATH=CMAKE_ADDR2LINE-NOTFOUND
 
@@ -225,6 +228,15 @@ COREFOUNDATION_FRAMEWORK:FILEPATH=/Library/Developer/CommandLineTools/SDKs/MacOS
 //Enable PortAudio device I/O backend
 PEERJAM_ENABLE_PORTAUDIO:BOOL=ON
 
+//Fail configuration if Opus is not found
+PEERJAM_REQUIRE_OPUS:BOOL=ON
+
+//Arguments to supply to pkg-config
+PKG_CONFIG_ARGN:STRING=
+
+//pkg-config executable
+PKG_CONFIG_EXECUTABLE:FILEPATH=/opt/homebrew/bin/pkg-config
+
 //Path to a file.
 PORTAUDIO_INCLUDE_DIR:PATH=/opt/homebrew/include
 
@@ -239,6 +251,12 @@ peerjam_native_IS_TOP_LEVEL:STATIC=ON
 
 //Value Computed by CMake
 peerjam_native_SOURCE_DIR:STATIC=/Users/anepoti/workspace/experiments/audio-jam/peerjam-native
+
+//Path to a library.
+pkgcfg_lib_OPUS_PC_opus:FILEPATH=/opt/homebrew/Cellar/opus/1.6/lib/libopus.dylib
+
+//Path to a library.
+pkgcfg_lib_PORTAUDIO_PC_portaudio:FILEPATH=/opt/homebrew/Cellar/portaudio/19.7.0/lib/libportaudio.dylib
 
 
 ########################
@@ -386,4 +404,87 @@ CMAKE_TAPI-ADVANCED:INTERNAL=1
 CMAKE_UNAME:INTERNAL=/usr/bin/uname
 //ADVANCED property for variable: CMAKE_VERBOSE_MAKEFILE
 CMAKE_VERBOSE_MAKEFILE-ADVANCED:INTERNAL=1
+OPUS_PC_CFLAGS:INTERNAL=-I/opt/homebrew/Cellar/opus/1.6/include/opus
+OPUS_PC_CFLAGS_I:INTERNAL=
+OPUS_PC_CFLAGS_OTHER:INTERNAL=
+OPUS_PC_FOUND:INTERNAL=1
+OPUS_PC_INCLUDEDIR:INTERNAL=/opt/homebrew/Cellar/opus/1.6/include
+OPUS_PC_INCLUDE_DIRS:INTERNAL=/opt/homebrew/Cellar/opus/1.6/include/opus
+OPUS_PC_LDFLAGS:INTERNAL=-L/opt/homebrew/Cellar/opus/1.6/lib;-lopus
+OPUS_PC_LDFLAGS_OTHER:INTERNAL=
+OPUS_PC_LIBDIR:INTERNAL=/opt/homebrew/Cellar/opus/1.6/lib
+OPUS_PC_LIBRARIES:INTERNAL=opus
+OPUS_PC_LIBRARY_DIRS:INTERNAL=/opt/homebrew/Cellar/opus/1.6/lib
+OPUS_PC_LIBS:INTERNAL=
+OPUS_PC_LIBS_L:INTERNAL=
+OPUS_PC_LIBS_OTHER:INTERNAL=
+OPUS_PC_LIBS_PATHS:INTERNAL=
+OPUS_PC_MODULE_NAME:INTERNAL=opus
+OPUS_PC_PREFIX:INTERNAL=/opt/homebrew/Cellar/opus/1.6
+OPUS_PC_STATIC_CFLAGS:INTERNAL=-I/opt/homebrew/Cellar/opus/1.6/include/opus
+OPUS_PC_STATIC_CFLAGS_I:INTERNAL=
+OPUS_PC_STATIC_CFLAGS_OTHER:INTERNAL=
+OPUS_PC_STATIC_INCLUDE_DIRS:INTERNAL=/opt/homebrew/Cellar/opus/1.6/include/opus
+OPUS_PC_STATIC_LDFLAGS:INTERNAL=-L/opt/homebrew/Cellar/opus/1.6/lib;-lopus
+OPUS_PC_STATIC_LDFLAGS_OTHER:INTERNAL=
+OPUS_PC_STATIC_LIBDIR:INTERNAL=
+OPUS_PC_STATIC_LIBRARIES:INTERNAL=opus
+OPUS_PC_STATIC_LIBRARY_DIRS:INTERNAL=/opt/homebrew/Cellar/opus/1.6/lib
+OPUS_PC_STATIC_LIBS:INTERNAL=
+OPUS_PC_STATIC_LIBS_L:INTERNAL=
+OPUS_PC_STATIC_LIBS_OTHER:INTERNAL=
+OPUS_PC_STATIC_LIBS_PATHS:INTERNAL=
+OPUS_PC_VERSION:INTERNAL=1.6
+OPUS_PC_opus_INCLUDEDIR:INTERNAL=
+OPUS_PC_opus_LIBDIR:INTERNAL=
+OPUS_PC_opus_PREFIX:INTERNAL=
+OPUS_PC_opus_VERSION:INTERNAL=
+//ADVANCED property for variable: PKG_CONFIG_ARGN
+PKG_CONFIG_ARGN-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: PKG_CONFIG_EXECUTABLE
+PKG_CONFIG_EXECUTABLE-ADVANCED:INTERNAL=1
+PORTAUDIO_PC_CFLAGS:INTERNAL=-I/opt/homebrew/Cellar/portaudio/19.7.0/include
+PORTAUDIO_PC_CFLAGS_I:INTERNAL=
+PORTAUDIO_PC_CFLAGS_OTHER:INTERNAL=
+PORTAUDIO_PC_FOUND:INTERNAL=1
+PORTAUDIO_PC_INCLUDEDIR:INTERNAL=/opt/homebrew/Cellar/portaudio/19.7.0/include
+PORTAUDIO_PC_INCLUDE_DIRS:INTERNAL=/opt/homebrew/Cellar/portaudio/19.7.0/include
+PORTAUDIO_PC_LDFLAGS:INTERNAL=-L/opt/homebrew/Cellar/portaudio/19.7.0/lib;-lportaudio;-framework;CoreAudio;-framework;AudioToolbox;-framework;AudioUnit;-framework;CoreFoundation;-framework;CoreServices
+PORTAUDIO_PC_LDFLAGS_OTHER:INTERNAL=
+PORTAUDIO_PC_LIBDIR:INTERNAL=/opt/homebrew/Cellar/portaudio/19.7.0/lib
+PORTAUDIO_PC_LIBRARIES:INTERNAL=portaudio;-framework CoreAudio;-framework AudioToolbox;-framework AudioUnit;-framework CoreFoundation;-framework CoreServices
+PORTAUDIO_PC_LIBRARY_DIRS:INTERNAL=/opt/homebrew/Cellar/portaudio/19.7.0/lib
+PORTAUDIO_PC_LIBS:INTERNAL=
+PORTAUDIO_PC_LIBS_L:INTERNAL=
+PORTAUDIO_PC_LIBS_OTHER:INTERNAL=
+PORTAUDIO_PC_LIBS_PATHS:INTERNAL=
+PORTAUDIO_PC_MODULE_NAME:INTERNAL=portaudio-2.0
+PORTAUDIO_PC_PREFIX:INTERNAL=/opt/homebrew/Cellar/portaudio/19.7.0
+PORTAUDIO_PC_STATIC_CFLAGS:INTERNAL=-I/opt/homebrew/Cellar/portaudio/19.7.0/include
+PORTAUDIO_PC_STATIC_CFLAGS_I:INTERNAL=
+PORTAUDIO_PC_STATIC_CFLAGS_OTHER:INTERNAL=
+PORTAUDIO_PC_STATIC_INCLUDE_DIRS:INTERNAL=/opt/homebrew/Cellar/portaudio/19.7.0/include
+PORTAUDIO_PC_STATIC_LDFLAGS:INTERNAL=-L/opt/homebrew/Cellar/portaudio/19.7.0/lib;-lportaudio;-framework;CoreAudio;-framework;AudioToolbox;-framework;AudioUnit;-framework;CoreFoundation;-framework;CoreServices
+PORTAUDIO_PC_STATIC_LDFLAGS_OTHER:INTERNAL=-framework;CoreAudio;-framework;AudioToolbox;-framework;AudioUnit;-framework;CoreFoundation;-framework;CoreServices
+PORTAUDIO_PC_STATIC_LIBDIR:INTERNAL=
+PORTAUDIO_PC_STATIC_LIBRARIES:INTERNAL=portaudio
+PORTAUDIO_PC_STATIC_LIBRARY_DIRS:INTERNAL=/opt/homebrew/Cellar/portaudio/19.7.0/lib
+PORTAUDIO_PC_STATIC_LIBS:INTERNAL=
+PORTAUDIO_PC_STATIC_LIBS_L:INTERNAL=
+PORTAUDIO_PC_STATIC_LIBS_OTHER:INTERNAL=
+PORTAUDIO_PC_STATIC_LIBS_PATHS:INTERNAL=
+PORTAUDIO_PC_VERSION:INTERNAL=19
+PORTAUDIO_PC_portaudio-2.0_INCLUDEDIR:INTERNAL=
+PORTAUDIO_PC_portaudio-2.0_LIBDIR:INTERNAL=
+PORTAUDIO_PC_portaudio-2.0_PREFIX:INTERNAL=
+PORTAUDIO_PC_portaudio-2.0_VERSION:INTERNAL=
+__pkg_config_arguments_OPUS_PC:INTERNAL=QUIET;IMPORTED_TARGET;opus
+__pkg_config_arguments_PORTAUDIO_PC:INTERNAL=QUIET;IMPORTED_TARGET;portaudio-2.0
+__pkg_config_checked_OPUS_PC:INTERNAL=1
+__pkg_config_checked_PORTAUDIO_PC:INTERNAL=1
+//ADVANCED property for variable: pkgcfg_lib_OPUS_PC_opus
+pkgcfg_lib_OPUS_PC_opus-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: pkgcfg_lib_PORTAUDIO_PC_portaudio
+pkgcfg_lib_PORTAUDIO_PC_portaudio-ADVANCED:INTERNAL=1
+prefix_result:INTERNAL=/opt/homebrew/Cellar/portaudio/19.7.0/lib
 

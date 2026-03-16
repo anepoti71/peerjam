@@ -980,6 +980,8 @@ CMakeFiles/pj-net-test.dir/src/net_test_main.cpp.o: \
   /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/../sonobus/deps/aoo/lib/aoo/aoo_types.h \
   /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/include/peerjam/logic/audio/audio_runtime.hpp \
   /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/../sonobus/deps/aoo/lib/aoo/aoo.h \
+  /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/include/peerjam/logic/audio/capture/audio_capture_source.hpp \
+  /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/include/peerjam/logic/audio/playback/audio_playback_sink.hpp \
   /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/include/peerjam/logic/transport/udp_datagram_socket.hpp \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/shared_mutex \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/chrono \
@@ -1029,4 +1031,7 @@ CMakeFiles/pj-net-test.dir/src/net_test_main.cpp.o: \
   /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/include/peerjam/logic/network/path_probe_engine.hpp \
   /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/include/peerjam/logic/network/path_scorer.hpp \
   /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/include/peerjam/logic/probe/probe_runtime.hpp \
+  /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/include/peerjam/logic/ui/realtime_ui_server.hpp \
+  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/condition_variable \
+  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__stop_token/stop_callback.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/iostream

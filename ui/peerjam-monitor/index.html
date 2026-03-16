@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PeerJam Audio Monitor</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <main class="layout">
+    <section class="card">
+      <header class="section-head">
+        <h1>Audio Capture</h1>
+        <span id="captureState" class="pill pill-off">Stopped</span>
+      </header>
+
+      <canvas id="waveCanvas" width="900" height="220" aria-label="Waveform"></canvas>
+      <canvas id="recvWaveCanvas" width="900" height="140" aria-label="Received waveform"></canvas>
+
+      <div class="controls">
+        <button id="startBtn" type="button">Start Capture</button>
+        <button id="stopBtn" type="button" disabled>Stop</button>
+        <button id="monitorBtn" type="button" disabled>Monitor Off</button>
+      </div>
+
+      <div class="stream-link">
+        <label for="eventsUrl">C++ Realtime Endpoint</label>
+        <input id="eventsUrl" type="text" value="http://127.0.0.1:17070/events">
+        <button id="connectEventsBtn" type="button">Connect</button>
+        <button id="disconnectEventsBtn" type="button" disabled>Disconnect</button>
+      </div>
+
+      <div class="device-select">
+        <label for="inputDeviceSelect">C++ Input Device</label>
+        <select id="inputDeviceSelect"></select>
+        <label for="outputDeviceSelect">C++ Output Device</label>
+        <select id="outputDeviceSelect"></select>
+        <button id="refreshDevicesBtn" type="button">Refresh Devices</button>
+        <button id="applyDevicesBtn" type="button">Apply Devices</button>
+      </div>
+
+      <div class="sliders">
+        <label for="captureGain">Capture Gain</label>
+        <input id="captureGain" type="range" min="0" max="2.5" value="1" step="0.01">
+        <output id="captureGainValue">1.00x</output>
+
+        <label for="monitorVolume">Monitor Volume</label>
+        <input id="monitorVolume" type="range" min="0" max="1" value="0.25" step="0.01">
+        <output id="monitorVolumeValue">25%</output>
+      </div>
+    </section>
+
+    <section class="card">
+      <header class="section-head">
+        <h2>P2P Telemetry</h2>
+        <span id="telemetryStatus" class="pill pill-warn">Awaiting data</span>
+      </header>
+
+      <div class="telemetry-grid">
+        <article class="metric" id="latencyCard">
+          <p class="metric-label">Latency</p>
+          <p class="metric-value"><span id="latencyMs">--</span> ms</p>
+        </article>
+        <article class="metric" id="jitterCard">
+          <p class="metric-label">Jitter</p>
+          <p class="metric-value"><span id="jitterMs">--</span> ms</p>
+        </article>
+        <article class="metric" id="bandwidthCard">
+          <p class="metric-label">Bandwidth</p>
+          <p class="metric-value"><span id="bandwidthKbps">--</span> kbps</p>
+        </article>
+      </div>
+
+      <canvas id="telemetryCanvas" width="900" height="130" aria-label="Telemetry Trend"></canvas>
+
+      <details class="details">
+        <summary>Manual Telemetry Update</summary>
+        <div class="manual-grid">
+          <label for="latencyInput">Latency (ms)</label>
+          <input id="latencyInput" type="number" min="0" step="0.1" placeholder="e.g. 11.2">
+          <label for="jitterInput">Jitter (ms)</label>
+          <input id="jitterInput" type="number" min="0" step="0.1" placeholder="e.g. 1.9">
+          <label for="bandwidthInput">Bandwidth (kbps)</label>
+          <input id="bandwidthInput" type="number" min="1" step="1" placeholder="e.g. 192">
+          <button id="applyTelemetryBtn" type="button">Apply</button>
+        </div>
+      </details>
+
+      <div class="report-import">
+        <label for="reportJson">Paste `pj-peer-probe` JSON report</label>
+        <textarea id="reportJson" rows="8" placeholder='{"network": {...}, "audio": {...}}'></textarea>
+        <button id="parseReportBtn" type="button">Parse Report</button>
+      </div>
+    </section>
+  </main>
+
+  <script src="./app.js" type="module"></script>
+</body>
+</html>

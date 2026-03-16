@@ -33,6 +33,8 @@ struct PeerOptions {
     int path_reprobe_interval_ms {};
     double path_switch_margin_score {};
     int path_switch_consecutive_wins {};
+    int ui_telemetry_port {};
+    int ui_telemetry_interval_ms {100};
     std::string session_profile_in;
     std::string session_profile_out;
     LoggingOptions logging;

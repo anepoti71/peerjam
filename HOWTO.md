@@ -21,23 +21,51 @@ Recommended:
 - low-latency audio interfaces for the full peer runtime
 - no VPN unless it is part of the intended deployment path
 
-## 2. Build
+## 2. OS Dependencies
+
+### Linux (Debian/Ubuntu)
+
+```bash
+sudo apt update
+sudo apt install -y \
+  build-essential \
+  cmake \
+  pkg-config \
+  libopus-dev \
+  portaudio19-dev
+```
+
+### macOS (Homebrew)
+
+```bash
+brew install cmake pkg-config opus portaudio
+```
+
+## 3. Build (Linux and macOS)
 
 On each machine:
 
 ```bash
 cd peerjam-native
-cmake -S . -B build
-cmake --build build -j 4
+cmake -S . -B build-portaudio -DPEERJAM_ENABLE_PORTAUDIO=ON
+cmake --build build-portaudio -j 4
+```
+
+If your AOO source tree is not at the default path, set it explicitly:
+
+```bash
+cmake -S . -B build-portaudio \
+  -DPEERJAM_ENABLE_PORTAUDIO=ON \
+  -DAOO_ROOT=/absolute/path/to/aoo
 ```
 
 Expected binaries:
 
-- `build/pj-signal-server`
-- `build/pj-net-test`
-- `build/pj-peer-probe`
+- `build-portaudio/pj-signal-server`
+- `build-portaudio/pj-net-test`
+- `build-portaudio/pj-peer-probe`
 
-## 3. Configuration Files
+## 4. Configuration Files
 
 Default config files are stored in:
 
@@ -61,7 +89,7 @@ Each binary accepts:
 
 CLI flags still override values from the config file.
 
-## 4. Logging
+## 5. Logging
 
 Logging is configured in the same config files with:
 
@@ -84,13 +112,13 @@ logging.enabled = false
 logging.level = off
 ```
 
-## 5. Start The Signaling Server
+## 6. Start The Signaling Server
 
 Run this on the public host:
 
 ```bash
 cd peerjam-native
-./build/pj-signal-server --config resources/config/signal-server.conf
+./build-portaudio/pj-signal-server --config resources/config/signal-server.conf
 ```
 
 If the public host is your local machine and you want simple start/stop commands, use:
@@ -129,14 +157,14 @@ make ports-check
 
 Make sure both remote machines can reach the public host on those ports.
 
-## 6. Run The Network Tester On Both Remote Machines
+## 7. Run The Network Tester On Both Remote Machines
 
 Use the same `--group` on both machines and different `--user` values.
 
 Machine A:
 
 ```bash
-./build/pj-net-test \
+./build-portaudio/pj-net-test \
   --config resources/config/net-test.conf \
   --server-host PUBLIC_SERVER_IP \
   --server-port 10999 \
@@ -157,7 +185,7 @@ Machine A:
 Machine B:
 
 ```bash
-./build/pj-net-test \
+./build-portaudio/pj-net-test \
   --config resources/config/net-test.conf \
   --server-host PUBLIC_SERVER_IP \
   --server-port 10999 \
@@ -175,7 +203,7 @@ Machine B:
   --profile-out bob-session-profile.json
 ```
 
-## 7. What The Tester Produces
+## 8. What The Tester Produces
 
 Each tester prints JSON with:
 
@@ -194,7 +222,7 @@ The profile contains:
 - `initial_buffer_ms`
 - `rationale`
 
-## 8. How To Read The Test Result
+## 9. How To Read The Test Result
 
 Focus on:
 
@@ -219,14 +247,14 @@ Good signs:
 - very low packet loss
 - stable candidate-pair selection
 
-## 9. Start The Full Peer Runtime With The Tested Profile
+## 10. Start The Full Peer Runtime With The Tested Profile
 
 After a successful test, use the profile file from each machine to configure the audio run.
 
 Machine A:
 
 ```bash
-./build/pj-peer-probe \
+./build-portaudio/pj-peer-probe \
   --config resources/config/peer-probe.conf \
   --server-host PUBLIC_SERVER_IP \
   --server-port 10999 \
@@ -235,13 +263,18 @@ Machine A:
   --udp-port 12000 \
   --profile-in alice-session-profile.json \
   --audio-seconds 30 \
-  --channels 2
+  --channels 2 \
+  --audio-device-io \
+  --audio-input-device -1 \
+  --audio-output-device -1 \
+  --ui-telemetry-port 17070 \
+  --ui-telemetry-interval-ms 100
 ```
 
 Machine B:
 
 ```bash
-./build/pj-peer-probe \
+./build-portaudio/pj-peer-probe \
   --config resources/config/peer-probe.conf \
   --server-host PUBLIC_SERVER_IP \
   --server-port 10999 \
@@ -250,7 +283,12 @@ Machine B:
   --udp-port 12000 \
   --profile-in bob-session-profile.json \
   --audio-seconds 30 \
-  --channels 2
+  --channels 2 \
+  --audio-device-io \
+  --audio-input-device -1 \
+  --audio-output-device -1 \
+  --ui-telemetry-port 17070 \
+  --ui-telemetry-interval-ms 100
 ```
 
 What `--profile-in` applies:
@@ -262,7 +300,39 @@ What `--profile-in` applies:
 
 You can still override other runtime values on the CLI if needed.
 
-## 10. Recommended First Real-World Procedure
+## 11. Realtime UI For End-to-End Audio Validation
+
+On each peer machine:
+
+```bash
+cd ui/peerjam-monitor
+python3 -m http.server 8088
+```
+
+Open `http://127.0.0.1:8088` and:
+
+1. Set realtime endpoint to `http://127.0.0.1:17070/events`.
+2. Click `Connect`.
+3. Click `Refresh Devices`.
+4. Choose `C++ Input Device` and `C++ Output Device`.
+5. Click `Apply Devices` before audio run starts.
+
+What to verify:
+
+- capture waveform is active (local input)
+- received waveform is active (remote peer audio)
+- latency and jitter telemetry stay stable
+- one-way latency remains below the mandatory `< 30 ms` budget
+
+## 12. Latency Budget Requirement
+
+For rhythm-sensitive remote collaboration, treat `< 30 ms` one-way latency as mandatory.
+
+- if one-way latency exceeds `30 ms`, classify as not suitable for timing-critical play
+- if jitter/loss are unstable, treat as not-ready even when average latency looks acceptable
+
+## 13. Recommended First Real-World Procedure
+
 
 1. Run the tester on both sites with wired connections.
 2. Repeat at least 3 times at different times of day.
@@ -270,7 +340,7 @@ You can still override other runtime values on the CLI if needed.
 4. If stable and `ready`, run `pj-peer-probe` with the saved profiles.
 5. If `marginal`, test again with fewer background network loads before deciding.
 
-## 11. Troubleshooting
+## 14. Troubleshooting
 
 If no direct path is established:
 

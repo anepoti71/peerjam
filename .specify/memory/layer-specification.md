@@ -277,6 +277,8 @@ Where:
 - avoid large host buffers
 - keep callback size aligned with media frame size where practical
 - expose actual device latency as part of the end-to-end budget
+- support explicit input-device and output-device selection at runtime setup
+- expose realtime captured and received waveform telemetry for operator validation
 
 ### Non-goals
 
@@ -302,6 +304,7 @@ Where:
 - drift estimate
 - playout-rate adjustment
 - active path score
+- one-way latency budget breach flag (`> 30 ms`)
 
 ### Policy outputs
 
@@ -311,6 +314,7 @@ Where:
 - recommended initial jitter buffer
 - recommendation to re-elect master or resynchronize
 - machine-readable preflight session profile for the peer runtime
+- explicit warning when one-way latency exceeds the `< 30 ms` interaction budget
 
 ## 11. Configuration and Logging Layer
 
@@ -319,11 +323,16 @@ Where:
 - externalize runtime tunables and startup parameters
 - provide configurable operational logging
 - permit production runs with logging disabled
+- provide optional realtime UI telemetry endpoint configuration for local monitoring clients
 
 ### Required behavior
 
 - Client, tester, and server applications must load startup configuration from files.
 - The default project configuration files must live under `resources/config/`.
+- Build configuration must support both Linux and macOS without hardcoded platform-specific
+  library paths.
+- Third-party codec/device dependencies must be discoverable via system package managers
+  (e.g., `pkg-config`, standard include/lib discovery), with explicit override options.
 - Logging must support at least:
   - `off`
   - `error`

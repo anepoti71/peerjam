@@ -603,6 +603,7 @@ CMakeFiles/pj-peer-probe.dir/src/peer_probe_main.cpp.o: /Users/anepoti/workspace
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__stop_token/atomic_unique_lock.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__stop_token/intrusive_list_view.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__stop_token/intrusive_shared_ptr.h \
+  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__stop_token/stop_callback.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__stop_token/stop_source.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__stop_token/stop_state.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__stop_token/stop_token.h \
@@ -799,6 +800,7 @@ CMakeFiles/pj-peer-probe.dir/src/peer_probe_main.cpp.o: /Users/anepoti/workspace
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/cmath \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/compare \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/concepts \
+  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/condition_variable \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/cstdarg \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/cstddef \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/cstdint \
@@ -832,6 +834,7 @@ CMakeFiles/pj-peer-probe.dir/src/peer_probe_main.cpp.o: /Users/anepoti/workspace
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/print \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/queue \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/ratio \
+  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/shared_mutex \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/sstream \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/stack \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/stddef.h \
@@ -1019,6 +1022,8 @@ CMakeFiles/pj-peer-probe.dir/src/peer_probe_main.cpp.o: /Users/anepoti/workspace
   /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/include/peerjam/common/logger.hpp \
   /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/include/peerjam/logic/audio/audio_runtime.hpp \
   /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/include/peerjam/logic/audio/audio_stream.hpp \
+  /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/include/peerjam/logic/audio/capture/audio_capture_source.hpp \
+  /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/include/peerjam/logic/audio/playback/audio_playback_sink.hpp \
   /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/include/peerjam/logic/control/aoo_peer_client.hpp \
   /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/include/peerjam/logic/control/peer_types.hpp \
   /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/include/peerjam/logic/network/candidate.hpp \
@@ -1030,7 +1035,8 @@ CMakeFiles/pj-peer-probe.dir/src/peer_probe_main.cpp.o: /Users/anepoti/workspace
   /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/include/peerjam/logic/probe/measurement.hpp \
   /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/include/peerjam/logic/probe/probe_runtime.hpp \
   /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/include/peerjam/logic/probe/recommendation_policy_options.hpp \
-  /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/include/peerjam/logic/transport/udp_datagram_socket.hpp
+  /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/include/peerjam/logic/transport/udp_datagram_socket.hpp \
+  /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/include/peerjam/logic/ui/realtime_ui_server.hpp
 
 
 /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/include/peerjam/logic/transport/udp_datagram_socket.hpp:
@@ -1044,6 +1050,8 @@ CMakeFiles/pj-peer-probe.dir/src/peer_probe_main.cpp.o: /Users/anepoti/workspace
 /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/include/peerjam/logic/network/candidate.hpp:
 
 /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/include/peerjam/logic/control/aoo_peer_client.hpp:
+
+/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/include/peerjam/logic/audio/capture/audio_capture_source.hpp:
 
 /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/include/peerjam/logic/audio/audio_stream.hpp:
 
@@ -1070,6 +1078,8 @@ CMakeFiles/pj-peer-probe.dir/src/peer_probe_main.cpp.o: /Users/anepoti/workspace
 /Library/Developer/CommandLineTools/usr/lib/clang/17/include/__stddef_null.h:
 
 /Library/Developer/CommandLineTools/usr/lib/clang/17/include/__stddef_max_align_t.h:
+
+/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/include/peerjam/logic/ui/realtime_ui_server.hpp:
 
 /Library/Developer/CommandLineTools/usr/lib/clang/17/include/__stdarg___gnuc_va_list.h:
 
@@ -1241,6 +1251,8 @@ CMakeFiles/pj-peer-probe.dir/src/peer_probe_main.cpp.o: /Users/anepoti/workspace
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/stddef.h:
 
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/shared_mutex:
+
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/ratio:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/queue:
@@ -1292,6 +1304,8 @@ CMakeFiles/pj-peer-probe.dir/src/peer_probe_main.cpp.o: /Users/anepoti/workspace
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/cstdarg:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/concepts:
+
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/compare:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/clocale:
 
@@ -2065,6 +2079,8 @@ CMakeFiles/pj-peer-probe.dir/src/peer_probe_main.cpp.o: /Users/anepoti/workspace
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_fd_clr.h:
 
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__stop_token/stop_callback.h:
+
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__concepts/invocable.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/machine/_endian.h:
@@ -2184,6 +2200,8 @@ CMakeFiles/pj-peer-probe.dir/src/peer_probe_main.cpp.o: /Users/anepoti/workspace
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__algorithm/search.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__chrono/concepts.h:
+
+/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/include/peerjam/logic/audio/playback/audio_playback_sink.hpp:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__algorithm/max_element.h:
 
@@ -2459,6 +2477,8 @@ CMakeFiles/pj-peer-probe.dir/src/peer_probe_main.cpp.o: /Users/anepoti/workspace
 
 /Library/Developer/CommandLineTools/usr/lib/clang/17/include/__stddef_header_macro.h:
 
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/condition_variable:
+
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__concepts/class_or_enum.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/arm/_param.h:
@@ -2724,8 +2744,6 @@ CMakeFiles/pj-peer-probe.dir/src/peer_probe_main.cpp.o: /Users/anepoti/workspace
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__format/width_estimation_table.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__algorithm/nth_element.h:
-
-/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/compare:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__algorithm/half_positive.h:
 

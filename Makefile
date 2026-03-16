@@ -80,15 +80,22 @@ server-start: dirs
 	fi
 
 server-stop:
-	@if [ ! -f "$(SERVER_PID_FILE)" ]; then \
+	@stopped=0; \
+	if [ -f "$(SERVER_PID_FILE)" ]; then \
+		pid="$$(cat "$(SERVER_PID_FILE)")"; \
+		if kill -0 "$$pid" 2>/dev/null; then \
+			kill "$$pid" && echo "stopped pj-signal-server pid $$pid" && stopped=1; \
+		else \
+			echo "stale pid file found for pj-signal-server"; \
+		fi; \
+	fi; \
+	for pid in $$(pgrep -f "$(SIGNAL_BIN)" 2>/dev/null || true); do \
+		if kill -0 "$$pid" 2>/dev/null; then \
+			kill "$$pid" && echo "stopped orphan pj-signal-server pid $$pid" && stopped=1; \
+		fi; \
+	done; \
+	if [ "$$stopped" -eq 0 ]; then \
 		echo "pj-signal-server is not running"; \
-		exit 0; \
-	fi
-	@if kill -0 "$$(cat "$(SERVER_PID_FILE)")" 2>/dev/null; then \
-		kill "$$(cat "$(SERVER_PID_FILE)")"; \
-		echo "stopped pj-signal-server pid $$(cat "$(SERVER_PID_FILE)")"; \
-	else \
-		echo "stale pid file found for pj-signal-server"; \
 	fi
 	@rm -f "$(SERVER_PID_FILE)"
 

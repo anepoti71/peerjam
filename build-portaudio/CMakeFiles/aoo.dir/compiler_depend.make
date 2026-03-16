@@ -2086,10 +2086,10 @@ CMakeFiles/aoo.dir/Users/anepoti/workspace/experiments/audio-jam/sonobus/deps/ao
   /Users/anepoti/workspace/experiments/audio-jam/sonobus/deps/aoo/lib/aoo/aoo_opus.h \
   /Users/anepoti/workspace/experiments/audio-jam/sonobus/deps/aoo/lib/aoo/aoo_types.h \
   /Users/anepoti/workspace/experiments/audio-jam/sonobus/deps/aoo/lib/aoo/aoo_utils.hpp \
-  /Users/anepoti/workspace/experiments/audio-jam/sonobus/deps/mac/include/opus/opus.h \
-  /Users/anepoti/workspace/experiments/audio-jam/sonobus/deps/mac/include/opus/opus_defines.h \
-  /Users/anepoti/workspace/experiments/audio-jam/sonobus/deps/mac/include/opus/opus_multistream.h \
-  /Users/anepoti/workspace/experiments/audio-jam/sonobus/deps/mac/include/opus/opus_types.h
+  /opt/homebrew/Cellar/opus/1.6/include/opus/opus.h \
+  /opt/homebrew/Cellar/opus/1.6/include/opus/opus_defines.h \
+  /opt/homebrew/Cellar/opus/1.6/include/opus/opus_multistream.h \
+  /opt/homebrew/Cellar/opus/1.6/include/opus/opus_types.h
 
 CMakeFiles/aoo.dir/Users/anepoti/workspace/experiments/audio-jam/sonobus/deps/aoo/lib/src/codec_pcm.cpp.o: /Users/anepoti/workspace/experiments/audio-jam/sonobus/deps/aoo/lib/src/codec_pcm.cpp \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/Availability.h \
@@ -9861,11 +9861,11 @@ CMakeFiles/aoo.dir/Users/anepoti/workspace/experiments/audio-jam/sonobus/deps/ao
 
 /Users/anepoti/workspace/experiments/audio-jam/sonobus/deps/aoo/lib/src/common.cpp:
 
-/Users/anepoti/workspace/experiments/audio-jam/sonobus/deps/mac/include/opus/opus_types.h:
+/opt/homebrew/Cellar/opus/1.6/include/opus/opus_multistream.h:
 
-/Users/anepoti/workspace/experiments/audio-jam/sonobus/deps/mac/include/opus/opus_defines.h:
+/opt/homebrew/Cellar/opus/1.6/include/opus/opus_defines.h:
 
-/Users/anepoti/workspace/experiments/audio-jam/sonobus/deps/mac/include/opus/opus.h:
+/opt/homebrew/Cellar/opus/1.6/include/opus/opus.h:
 
 /Users/anepoti/workspace/experiments/audio-jam/sonobus/deps/aoo/lib/src/codec_opus.cpp:
 
@@ -11001,8 +11001,6 @@ CMakeFiles/aoo.dir/Users/anepoti/workspace/experiments/audio-jam/sonobus/deps/ao
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__debug_utils/randomize_range.h:
 
-/Users/anepoti/workspace/experiments/audio-jam/sonobus/deps/mac/include/opus/opus_multistream.h:
-
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_fd_clr.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__concepts/invocable.h:
@@ -11072,6 +11070,8 @@ CMakeFiles/aoo.dir/Users/anepoti/workspace/experiments/audio-jam/sonobus/deps/ao
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__chrono/statically_widen.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__chrono/high_resolution_clock.h:
+
+/opt/homebrew/Cellar/opus/1.6/include/opus/opus_types.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/type_traits:
 

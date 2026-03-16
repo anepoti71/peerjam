@@ -98,8 +98,8 @@ pj-net-test: CMakeFiles/pj-net-test.dir/build.make
 pj-net-test: libpeerjam_measure.a
 pj-net-test: libaoo.a
 pj-net-test: liboscpack.a
-pj-net-test: /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/../sonobus/deps/mac/lib/libopus.a
-pj-net-test: /opt/homebrew/lib/libportaudio.dylib
+pj-net-test: /opt/homebrew/Cellar/opus/1.6/lib/libopus.dylib
+pj-net-test: /opt/homebrew/Cellar/portaudio/19.7.0/lib/libportaudio.dylib
 pj-net-test: CMakeFiles/pj-net-test.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/build-portaudio/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable pj-net-test"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/pj-net-test.dir/link.txt --verbose=$(VERBOSE)

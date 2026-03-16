@@ -10,24 +10,16 @@
 namespace peerjam {
 namespace {
 
-double estimate_drift_ppm(const std::vector<double>& time_s, const std::vector<double>& ratio, int sink_buffer_ms) {
-    if (time_s.size() < 2 || ratio.size() != time_s.size() || sink_buffer_ms <= 0) {
+double estimate_drift_ppm(std::size_t n, double sum_x, double sum_y, double sum_xx, double sum_xy, int sink_buffer_ms) {
+    if (n < 2 || sink_buffer_ms <= 0) {
         return 0.0;
     }
-    const double n = static_cast<double>(time_s.size());
-    const double sum_x = std::accumulate(time_s.begin(), time_s.end(), 0.0);
-    const double sum_y = std::accumulate(ratio.begin(), ratio.end(), 0.0);
-    double sum_xy = 0.0;
-    double sum_xx = 0.0;
-    for (std::size_t i = 0; i < time_s.size(); ++i) {
-        sum_xy += time_s[i] * ratio[i];
-        sum_xx += time_s[i] * time_s[i];
-    }
-    const double denominator = (n * sum_xx) - (sum_x * sum_x);
+    const double n_d = static_cast<double>(n);
+    const double denominator = (n_d * sum_xx) - (sum_x * sum_x);
     if (std::abs(denominator) < 1e-9) {
         return 0.0;
     }
-    const double slope_ratio_per_second = ((n * sum_xy) - (sum_x * sum_y)) / denominator;
+    const double slope_ratio_per_second = ((n_d * sum_xy) - (sum_x * sum_y)) / denominator;
     return slope_ratio_per_second * (static_cast<double>(sink_buffer_ms) / 1000.0) * 1'000'000.0;
 }
 
@@ -59,14 +51,27 @@ void AudioStreamTracker::on_render_block(const float* interleaved, int frames, i
 
 void AudioStreamTracker::on_buffer_fill(float ratio, std::uint64_t steady_now_ns) {
     constexpr std::size_t kDriftWindowSamples = 300;
-    if (buffer_fill_ratio_.size() >= kDriftWindowSamples) {
-        buffer_fill_ratio_.erase(buffer_fill_ratio_.begin());
+    const double clamped_ratio = std::clamp(static_cast<double>(ratio), 0.0, 1.5);
+    const double time_s = static_cast<double>(steady_now_ns) / 1'000'000'000.0;
+    buffer_fill_ratio_.push_back(clamped_ratio);
+
+    if (drift_time_s_.size() >= kDriftWindowSamples) {
+        const double old_x = drift_time_s_.front();
+        const double old_y = drift_ratio_.front();
+        drift_time_s_.pop_front();
+        drift_ratio_.pop_front();
+        drift_sum_x_ -= old_x;
+        drift_sum_y_ -= old_y;
+        drift_sum_xx_ -= old_x * old_x;
+        drift_sum_xy_ -= old_x * old_y;
     }
-    if (buffer_fill_time_s_.size() >= kDriftWindowSamples) {
-        buffer_fill_time_s_.erase(buffer_fill_time_s_.begin());
-    }
-    buffer_fill_ratio_.push_back(std::clamp(static_cast<double>(ratio), 0.0, 1.5));
-    buffer_fill_time_s_.push_back(static_cast<double>(steady_now_ns) / 1'000'000'000.0);
+
+    drift_time_s_.push_back(time_s);
+    drift_ratio_.push_back(clamped_ratio);
+    drift_sum_x_ += time_s;
+    drift_sum_y_ += clamped_ratio;
+    drift_sum_xx_ += time_s * time_s;
+    drift_sum_xy_ += time_s * clamped_ratio;
 }
 
 void AudioStreamTracker::on_play_event() { ++play_events_; }
@@ -77,7 +82,7 @@ void AudioStreamTracker::on_resent_blocks(std::uint32_t count) { resent_blocks_ 
 void AudioStreamTracker::on_gap_blocks(std::uint32_t count) { gap_blocks_ += count; }
 
 double AudioStreamTracker::current_drift_ppm_estimate() const {
-    return estimate_drift_ppm(buffer_fill_time_s_, buffer_fill_ratio_, options_.sink_buffer_ms);
+    return estimate_drift_ppm(drift_time_s_.size(), drift_sum_x_, drift_sum_y_, drift_sum_xx_, drift_sum_xy_, options_.sink_buffer_ms);
 }
 
 SummaryStats AudioStreamTracker::summarize(const std::vector<double>& values) {

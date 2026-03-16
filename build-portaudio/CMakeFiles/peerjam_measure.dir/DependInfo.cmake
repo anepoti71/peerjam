@@ -14,6 +14,8 @@ set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/src/common/logger.cpp" "CMakeFiles/peerjam_measure.dir/src/common/logger.cpp.o" "gcc" "CMakeFiles/peerjam_measure.dir/src/common/logger.cpp.o.d"
   "/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/src/logic/audio/audio_runtime.cpp" "CMakeFiles/peerjam_measure.dir/src/logic/audio/audio_runtime.cpp.o" "gcc" "CMakeFiles/peerjam_measure.dir/src/logic/audio/audio_runtime.cpp.o.d"
   "/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/src/logic/audio/audio_stream.cpp" "CMakeFiles/peerjam_measure.dir/src/logic/audio/audio_stream.cpp.o" "gcc" "CMakeFiles/peerjam_measure.dir/src/logic/audio/audio_stream.cpp.o.d"
+  "/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/src/logic/audio/capture/audio_capture_source.cpp" "CMakeFiles/peerjam_measure.dir/src/logic/audio/capture/audio_capture_source.cpp.o" "gcc" "CMakeFiles/peerjam_measure.dir/src/logic/audio/capture/audio_capture_source.cpp.o.d"
+  "/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/src/logic/audio/playback/audio_playback_sink.cpp" "CMakeFiles/peerjam_measure.dir/src/logic/audio/playback/audio_playback_sink.cpp.o" "gcc" "CMakeFiles/peerjam_measure.dir/src/logic/audio/playback/audio_playback_sink.cpp.o.d"
   "/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/src/logic/control/aoo_peer_client.cpp" "CMakeFiles/peerjam_measure.dir/src/logic/control/aoo_peer_client.cpp.o" "gcc" "CMakeFiles/peerjam_measure.dir/src/logic/control/aoo_peer_client.cpp.o.d"
   "/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/src/logic/network/candidate.cpp" "CMakeFiles/peerjam_measure.dir/src/logic/network/candidate.cpp.o" "gcc" "CMakeFiles/peerjam_measure.dir/src/logic/network/candidate.cpp.o.d"
   "/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/src/logic/network/candidate_exchange.cpp" "CMakeFiles/peerjam_measure.dir/src/logic/network/candidate_exchange.cpp.o" "gcc" "CMakeFiles/peerjam_measure.dir/src/logic/network/candidate_exchange.cpp.o.d"
@@ -25,6 +27,7 @@ set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/src/logic/probe/probe_packet.cpp" "CMakeFiles/peerjam_measure.dir/src/logic/probe/probe_packet.cpp.o" "gcc" "CMakeFiles/peerjam_measure.dir/src/logic/probe/probe_packet.cpp.o.d"
   "/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/src/logic/probe/probe_runtime.cpp" "CMakeFiles/peerjam_measure.dir/src/logic/probe/probe_runtime.cpp.o" "gcc" "CMakeFiles/peerjam_measure.dir/src/logic/probe/probe_runtime.cpp.o.d"
   "/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/src/logic/transport/udp_datagram_socket.cpp" "CMakeFiles/peerjam_measure.dir/src/logic/transport/udp_datagram_socket.cpp.o" "gcc" "CMakeFiles/peerjam_measure.dir/src/logic/transport/udp_datagram_socket.cpp.o.d"
+  "/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/src/logic/ui/realtime_ui_server.cpp" "CMakeFiles/peerjam_measure.dir/src/logic/ui/realtime_ui_server.cpp.o" "gcc" "CMakeFiles/peerjam_measure.dir/src/logic/ui/realtime_ui_server.cpp.o.d"
   )
 
 # Targets to which this target links which contain Fortran sources.

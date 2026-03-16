@@ -1,23 +1,30 @@
 #include "peerjam/app/session_profile.hpp"
 #include "peerjam/common/json_utils.hpp"
 #include "peerjam/common/logger.hpp"
+#include "peerjam/logic/audio/capture/audio_capture_source.hpp"
 #include "peerjam/logic/control/aoo_peer_client.hpp"
 
 #include "aoo/aoo.h"
 #include "aoo/aoo_types.h"
 
 #include <arpa/inet.h>
+#include <algorithm>
 #include <chrono>
 #include <cstring>
+#include <iomanip>
 #include <iostream>
 #include <poll.h>
+#include <sstream>
 #include <thread>
+#include <unordered_set>
 
 namespace peerjam {
 namespace {
 
 constexpr int kPollTimeoutMs = 20;
 constexpr auto kCandidateFetchRetryInterval = std::chrono::milliseconds(500);
+constexpr std::size_t kMaxCandidatesDefault = 8;
+constexpr std::size_t kMaxCandidatesLocalhost = 2;
 
 std::uint64_t stable_fnv1a_64(const std::string& text) {
     constexpr std::uint64_t kOffsetBasis = 14695981039346656037ULL;
@@ -36,6 +43,49 @@ RemoteEndpoint endpoint_from_candidate(const NetworkCandidate& candidate, const 
     endpoint.addr_len = candidate.addr_len;
     endpoint.user = user;
     return endpoint;
+}
+
+bool is_localhost_host(const std::string& host) {
+    return host == "127.0.0.1" || host == "::1" || host == "localhost";
+}
+
+std::vector<NetworkCandidate> normalize_candidates(
+    std::vector<NetworkCandidate> candidates,
+    bool localhost_mode
+) {
+    std::vector<NetworkCandidate> filtered;
+    filtered.reserve(candidates.size());
+
+    // In localhost mode, probing non-loopback interfaces creates huge pair matrices
+    // and does not add value for local smoke verification.
+    if (localhost_mode) {
+        for (const auto& candidate : candidates) {
+            if (candidate.is_loopback) {
+                filtered.push_back(candidate);
+            }
+        }
+        if (filtered.empty() && !candidates.empty()) {
+            filtered.push_back(candidates.front());
+        }
+    } else {
+        filtered = std::move(candidates);
+    }
+
+    std::vector<NetworkCandidate> unique;
+    unique.reserve(filtered.size());
+    std::unordered_set<std::string> seen;
+    for (const auto& candidate : filtered) {
+        const auto key = candidate_address_string(candidate);
+        if (seen.insert(key).second) {
+            unique.push_back(candidate);
+        }
+    }
+
+    const std::size_t max_candidates = localhost_mode ? kMaxCandidatesLocalhost : kMaxCandidatesDefault;
+    if (unique.size() > max_candidates) {
+        unique.resize(max_candidates);
+    }
+    return unique;
 }
 
 }  // namespace
@@ -82,6 +132,7 @@ void AooPeerClient::tick_callback(void* user) {
     }
     self->pump_client_events();
     self->maybe_send_client_messages();
+    self->maybe_publish_ui_telemetry();
 }
 
 void AooPeerClient::background_reprobe_loop() {
@@ -93,6 +144,7 @@ void AooPeerClient::background_reprobe_loop() {
         if (load_remote_endpoint()) {
             const auto report = path_manager_.reprobe_and_maybe_switch(session_token_);
             apply_selected_path(report);
+            update_selected_path_metrics(report);
         }
     }
 }
@@ -103,6 +155,7 @@ int AooPeerClient::start() {
         PJ_LOG(Error, "failed to open udp port " << options_.udp_port);
         return 1;
     }
+    const bool localhost_mode = is_localhost_host(options_.server_host);
     auto local_candidates = candidate_gatherer_.gather_local_candidates(options_.udp_port);
     if (const auto srflx = candidate_gatherer_.gather_server_reflexive_candidate(
             socket_,
@@ -112,6 +165,7 @@ int AooPeerClient::start() {
         )) {
         local_candidates.push_back(*srflx);
     }
+    local_candidates = normalize_candidates(std::move(local_candidates), localhost_mode);
     path_manager_.set_local_candidates(std::move(local_candidates));
     publish_local_candidates();
 
@@ -132,6 +186,10 @@ int AooPeerClient::start() {
 
 void AooPeerClient::stop() {
     audio_.teardown();
+    if (ui_server_) {
+        ui_server_->stop();
+        ui_server_.reset();
+    }
     reprobe_running_.store(false);
     receiver_running_.store(false);
     if (client_) {
@@ -248,7 +306,7 @@ void AooPeerClient::try_fetch_remote_candidates(const std::string& peer_user) {
         peer_user
     );
     if (remote_candidates && !remote_candidates->empty()) {
-        path_manager_.set_remote_candidates(*remote_candidates);
+        path_manager_.set_remote_candidates(normalize_candidates(std::move(*remote_candidates), is_localhost_host(options_.server_host)));
         remote_candidates_fetched_ = true;
     } else {
         next_candidate_fetch_at_ = std::chrono::steady_clock::now() + kCandidateFetchRetryInterval;
@@ -264,19 +322,88 @@ bool AooPeerClient::apply_selected_path(const PathSelectionReport& report) {
         return false;
     }
 
-    if (!applied_local_candidate_
-        || applied_local_candidate_->foundation != report.selected_local.foundation
-        || candidate_address_string(*applied_local_candidate_) != candidate_address_string(report.selected_local)) {
-        if (socket_.rebind(report.selected_local.addr, report.selected_local.addr_len) != 0) {
-            return false;
+    // Keep the signaled remote endpoint when the selected pair has total loss.
+    // This avoids switching to an unreachable candidate and lets probe/runtime
+    // continue with the known-good control-plane endpoint.
+    const bool unreachable_selected_path = report.selected_score.loss_percent >= 99.9;
+
+    if (!unreachable_selected_path) {
+        if (!applied_local_candidate_
+            || applied_local_candidate_->foundation != report.selected_local.foundation
+            || candidate_address_string(*applied_local_candidate_) != candidate_address_string(report.selected_local)) {
+            if (socket_.rebind(report.selected_local.addr, report.selected_local.addr_len) != 0) {
+                return false;
+            }
+            applied_local_candidate_ = report.selected_local;
         }
-        applied_local_candidate_ = report.selected_local;
+
+        const auto current = load_remote_endpoint();
+        const std::string remote_user = current ? current->user : "unknown";
+        std::atomic_store(&remote_endpoint_, std::make_shared<RemoteEndpoint>(endpoint_from_candidate(report.selected_remote, remote_user)));
+    }
+    return true;
+}
+
+void AooPeerClient::update_selected_path_metrics(const PathSelectionReport& report) {
+    if (!report.active_path_selected) {
+        return;
+    }
+    selected_latency_ms_.store(report.selected_score.latency_ms);
+    selected_jitter_ms_.store(report.selected_score.jitter_ms);
+}
+
+double AooPeerClient::estimated_bandwidth_kbps(const std::string& codec) {
+    if (codec.rfind("opus", 0) == 0) {
+        return 96.0;
+    }
+    return 3072.0;
+}
+
+void AooPeerClient::maybe_publish_ui_telemetry() {
+    if (!ui_server_) {
+        return;
+    }
+    const auto now = std::chrono::steady_clock::now();
+    if (now < next_ui_publish_at_) {
+        return;
+    }
+    next_ui_publish_at_ = now + std::chrono::milliseconds(std::max(20, options_.ui_telemetry_interval_ms));
+
+    const auto snapshot = audio_.latest_snapshot();
+    if (!snapshot) {
+        return;
     }
 
-    const auto current = load_remote_endpoint();
-    const std::string remote_user = current ? current->user : "unknown";
-    std::atomic_store(&remote_endpoint_, std::make_shared<RemoteEndpoint>(endpoint_from_candidate(report.selected_remote, remote_user)));
-    return true;
+    std::ostringstream os;
+    os << std::fixed << std::setprecision(3);
+    os << "{"
+       << "\"network\":{"
+       << "\"latency_ms\":" << selected_latency_ms_.load() << ","
+       << "\"jitter_ms\":" << selected_jitter_ms_.load() << ","
+       << "\"bandwidth_kbps\":" << estimated_bandwidth_kbps(snapshot->codec)
+       << "},"
+       << "\"audio\":{"
+       << "\"input_rms\":" << snapshot->input_rms << ","
+       << "\"input_peak\":" << snapshot->input_peak << ","
+       << "\"buffer_fill_ratio\":" << snapshot->buffer_fill_ratio << ","
+       << "\"drift_ppm\":" << snapshot->drift_ppm << ","
+       << "\"codec\":" << json_quote(snapshot->codec) << ","
+       << "\"wave\":[";
+    for (int i = 0; i < snapshot->waveform_points; ++i) {
+        if (i > 0) {
+            os << ",";
+        }
+        os << snapshot->waveform[static_cast<std::size_t>(i)];
+    }
+    os << "],\"recv_wave\":[";
+    for (int i = 0; i < snapshot->received_waveform_points; ++i) {
+        if (i > 0) {
+            os << ",";
+        }
+        os << snapshot->received_waveform[static_cast<std::size_t>(i)];
+    }
+    os << "]}}";
+    ui_server_->publish_json(os.str());
 }
 
 void AooPeerClient::elect_timing_authority(const std::string& remote_user) {
@@ -395,6 +522,16 @@ int AooPeerClient::run_qualification(bool include_audio) {
 
     auto path_report = path_manager_.measure_and_select_active_path(session_token_);
     apply_selected_path(path_report);
+    update_selected_path_metrics(path_report);
+    if (options_.ui_telemetry_port > 0) {
+        ui_server_ = std::make_unique<RealtimeUiServer>();
+        if (!ui_server_->start(options_.ui_telemetry_port)) {
+            ui_server_.reset();
+        } else {
+            ui_server_->set_devices_json(list_audio_io_devices_json());
+        }
+    }
+    next_ui_publish_at_ = std::chrono::steady_clock::now();
     reprobe_running_.store(true);
     reprobe_thread_ = std::thread([this]() { background_reprobe_loop(); });
     const auto remote_endpoint = load_remote_endpoint();
@@ -419,6 +556,18 @@ int AooPeerClient::run_qualification(bool include_audio) {
     path_report = path_manager_.current_report();
     if (include_audio && options_.audio.seconds > 0) {
         apply_session_profile(probe_report.recommendation, options_.audio);
+        if (ui_server_) {
+            int input_index = -2;
+            int output_index = -2;
+            if (ui_server_->consume_selected_devices(input_index, output_index)) {
+                if (input_index >= -1) {
+                    options_.audio.input_device_index = input_index;
+                }
+                if (output_index >= -1) {
+                    options_.audio.output_device_index = output_index;
+                }
+            }
+        }
         audio_.set_options(options_.audio);
         if (audio_.setup(socket_, &remote_endpoint_) != 0) {
             return 3;
@@ -434,6 +583,10 @@ int AooPeerClient::run_qualification(bool include_audio) {
                   << "}\n";
     } else {
         print_qualification_report(path_report, probe_report);
+    }
+    if (ui_server_) {
+        ui_server_->stop();
+        ui_server_.reset();
     }
 
     return 0;

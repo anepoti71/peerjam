@@ -1,7 +1,7 @@
 <!--
   Sync Impact Report
   ==================
-  Version change: (unfilled template) → 1.0.0
+  Version change: 1.0.1 → 1.0.2
   Source: Reconciled from speckit/speckit.constitution (now removed)
 
   Added sections:
@@ -41,6 +41,7 @@ archival quality, or conferencing convenience.
 Required implications:
 
 - Latency MUST be favored over feature breadth.
+- One-way end-to-end latency budget for rhythm-sensitive sessions MUST target `< 30 ms`.
 - Designs that improve average quality while harming timing stability MUST be rejected.
 - Timing regressions MUST be treated as first-class failures.
 
@@ -170,6 +171,7 @@ Required implications:
 - Approximate fiber propagation cost MUST be treated as a hard budget component.
 - Regional proximity is a prerequisite for best musical results.
 - Recommendations MUST distinguish transport quality from geography-imposed delay.
+- Session guidance MUST explicitly flag when one-way latency exceeds the `< 30 ms` budget.
 
 ### XIII. Fail Safe, Not Fake
 
@@ -189,6 +191,7 @@ Any implementation or change is acceptable only if it preserves these invariants
 - P2P UDP media remains the primary path.
 - Performance-sensitive paths remain allocation-conscious and low-overhead.
 - Runtime metrics remain available for path, transport, and synchronization state.
+- One-way latency budget enforcement remains visible in metrics and operator guidance (`< 30 ms` target).
 - Clock drift is managed continuously with smooth correction.
 - Buffering remains intentionally small and measurable.
 - The architecture remains viable on real public-internet links.
@@ -216,4 +219,8 @@ This constitution supersedes all other project practices. Amendments require:
 All feature plans MUST include a Constitution Check gate verifying compliance with the
 principles above before Phase 0 research proceeds.
 
-**Version**: 1.0.0 | **Ratified**: 2026-03-15 | **Last Amended**: 2026-03-15
+Operational verification and runbooks MUST explicitly document when commands require
+elevated permissions in constrained environments (for example, local sandbox restrictions
+that block UDP socket binding during `pj-net-test` execution).
+
+**Version**: 1.0.2 | **Ratified**: 2026-03-15 | **Last Amended**: 2026-03-16

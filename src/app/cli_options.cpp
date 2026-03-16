@@ -80,6 +80,8 @@ void print_cli_help(CliMode mode) {
         << "  --path-reprobe-ms MS\n"
         << "  --path-switch-margin SCORE\n"
         << "  --path-switch-wins N\n"
+        << "  --ui-telemetry-port PORT\n"
+        << "  --ui-telemetry-interval-ms MS\n"
         << "  --profile-in FILE\n"
         << "  --audio-seconds SECONDS\n"
         << "  --sample-rate HZ\n"
@@ -89,6 +91,8 @@ void print_cli_help(CliMode mode) {
         << "  --sink-buffer-ms MS\n"
         << "  --tone-hz HZ\n"
         << "  --audio-device-io\n"
+        << "  --audio-input-device INDEX\n"
+        << "  --audio-output-device INDEX\n"
         << "  --disable-drift-correction\n"
         << "  --group-password PASSWORD\n"
         << "  --user-password PASSWORD\n";
@@ -126,6 +130,8 @@ bool parse_peer_options(int argc, char** argv, CliMode mode, PeerOptions& option
     read_int_arg(argv, argv + argc, "--path-reprobe-ms", options.path_reprobe_interval_ms);
     read_double_arg(argv, argv + argc, "--path-switch-margin", options.path_switch_margin_score);
     read_int_arg(argv, argv + argc, "--path-switch-wins", options.path_switch_consecutive_wins);
+    read_int_arg(argv, argv + argc, "--ui-telemetry-port", options.ui_telemetry_port);
+    read_int_arg(argv, argv + argc, "--ui-telemetry-interval-ms", options.ui_telemetry_interval_ms);
     read_string_arg(argv, argv + argc, "--profile-out", options.session_profile_out);
 
     if (mode == CliMode::PeerProbe) {
@@ -137,6 +143,8 @@ bool parse_peer_options(int argc, char** argv, CliMode mode, PeerOptions& option
         read_int_arg(argv, argv + argc, "--source-buffer-ms", options.audio.source_buffer_ms);
         read_int_arg(argv, argv + argc, "--sink-buffer-ms", options.audio.sink_buffer_ms);
         read_double_arg(argv, argv + argc, "--tone-hz", options.audio.tone_hz);
+        read_int_arg(argv, argv + argc, "--audio-input-device", options.audio.input_device_index);
+        read_int_arg(argv, argv + argc, "--audio-output-device", options.audio.output_device_index);
         for (char** it = argv; it != argv + argc; ++it) {
             if (std::string(*it) == "--audio-device-io") {
                 options.audio.device_io_enabled = true;

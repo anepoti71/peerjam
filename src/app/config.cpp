@@ -124,6 +124,8 @@ void apply_audio_config(const std::unordered_map<std::string, std::string>& valu
     audio.dynamic_resampling = values.count("audio.dynamic_resampling") ? parse_bool(values.at("audio.dynamic_resampling")) : audio.dynamic_resampling;
     audio.codec = parse_string(values, "audio.codec", audio.codec);
     audio.device_io_enabled = values.count("audio.device_io_enabled") ? parse_bool(values.at("audio.device_io_enabled")) : audio.device_io_enabled;
+    audio.input_device_index = parse_int(values, "audio.input_device_index", audio.input_device_index);
+    audio.output_device_index = parse_int(values, "audio.output_device_index", audio.output_device_index);
     audio.tone_hz = parse_double(values, "audio.tone_hz", audio.tone_hz);
     audio.tone_level = parse_double(values, "audio.tone_level", audio.tone_level);
     audio.source_id = parse_int(values, "audio.source_id", audio.source_id);
@@ -157,6 +159,8 @@ bool load_peer_config(const std::string& path, PeerOptions& options) {
     options.path_reprobe_interval_ms = parse_int(values, "path.reprobe_interval_ms", options.path_reprobe_interval_ms);
     options.path_switch_margin_score = parse_double(values, "path.switch_margin_score", options.path_switch_margin_score);
     options.path_switch_consecutive_wins = parse_int(values, "path.switch_consecutive_wins", options.path_switch_consecutive_wins);
+    options.ui_telemetry_port = parse_int(values, "ui.telemetry_port", options.ui_telemetry_port);
+    options.ui_telemetry_interval_ms = parse_int(values, "ui.telemetry_interval_ms", options.ui_telemetry_interval_ms);
     options.session_profile_in = parse_string(values, "profile.in", options.session_profile_in);
     options.session_profile_out = parse_string(values, "profile.out", options.session_profile_out);
     apply_logging_config(values, options.logging);

@@ -98,8 +98,8 @@ pj-peer-probe: CMakeFiles/pj-peer-probe.dir/build.make
 pj-peer-probe: libpeerjam_measure.a
 pj-peer-probe: libaoo.a
 pj-peer-probe: liboscpack.a
-pj-peer-probe: /Users/anepoti/workspace/experiments/audio-jam/peerjam-native/../sonobus/deps/mac/lib/libopus.a
-pj-peer-probe: /opt/homebrew/lib/libportaudio.dylib
+pj-peer-probe: /opt/homebrew/Cellar/opus/1.6/lib/libopus.dylib
+pj-peer-probe: /opt/homebrew/Cellar/portaudio/19.7.0/lib/libportaudio.dylib
 pj-peer-probe: CMakeFiles/pj-peer-probe.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/build-portaudio/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable pj-peer-probe"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/pj-peer-probe.dir/link.txt --verbose=$(VERBOSE)

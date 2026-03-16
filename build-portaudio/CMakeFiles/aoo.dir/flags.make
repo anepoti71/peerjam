@@ -5,13 +5,13 @@
 # compile CXX with /usr/bin/c++
 C_DEFINES = -DAOO_BUILD -DAOO_STATIC
 
-C_INCLUDES = -I/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/../sonobus/deps/aoo/lib -I/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/../sonobus/deps/aoo/deps -I/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/../sonobus/deps/aoo/deps/oscpack -I/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/../sonobus/deps/aoo/deps/md5 -I/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/../sonobus/deps/mac/include -F/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks
+C_INCLUDES = -I/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/../sonobus/deps/aoo/lib -I/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/../sonobus/deps/aoo/deps -I/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/../sonobus/deps/aoo/deps/oscpack -I/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/../sonobus/deps/aoo/deps/md5 -I/opt/homebrew/Cellar/opus/1.6/include -F/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks -isystem /opt/homebrew/Cellar/opus/1.6/include/opus
 
 C_FLAGS = 
 
 CXX_DEFINES = -DAOO_BUILD -DAOO_STATIC
 
-CXX_INCLUDES = -I/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/../sonobus/deps/aoo/lib -I/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/../sonobus/deps/aoo/deps -I/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/../sonobus/deps/aoo/deps/oscpack -I/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/../sonobus/deps/aoo/deps/md5 -I/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/../sonobus/deps/mac/include -F/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks
+CXX_INCLUDES = -I/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/../sonobus/deps/aoo/lib -I/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/../sonobus/deps/aoo/deps -I/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/../sonobus/deps/aoo/deps/oscpack -I/Users/anepoti/workspace/experiments/audio-jam/peerjam-native/../sonobus/deps/aoo/deps/md5 -I/opt/homebrew/Cellar/opus/1.6/include -F/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks -isystem /opt/homebrew/Cellar/opus/1.6/include/opus
 
 CXX_FLAGS = -std=c++20
 

@@ -28,6 +28,8 @@ int main(int argc, char** argv) {
         options.path_reprobe_interval_ms = 3000;
         options.path_switch_margin_score = 1.0;
         options.path_switch_consecutive_wins = 2;
+        options.ui_telemetry_port = 0;
+        options.ui_telemetry_interval_ms = 100;
         options.logging.enabled = false;
         options.logging.level = "off";
         options.logging.sink = "stderr";
@@ -44,6 +46,9 @@ int main(int argc, char** argv) {
         options.audio.resend_max_frames = 4;
         options.audio.redundancy = 1;
         options.audio.dynamic_resampling = true;
+        options.audio.device_io_enabled = true;
+        options.audio.input_device_index = -1;
+        options.audio.output_device_index = -1;
         options.audio.tone_hz = 440.0;
         options.audio.tone_level = 0.15;
         options.audio.source_id = 1;
