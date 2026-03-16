@@ -3,3 +3,4 @@ build-portaudio/
 .run/
 *.log
 *-session-profile.json
+.claude/
