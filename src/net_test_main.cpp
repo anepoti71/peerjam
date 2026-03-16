@@ -4,12 +4,20 @@
 #include "peerjam/logic/control/aoo_peer_client.hpp"
 
 #include <iostream>
+#include <string>
 
 using peerjam::AooPeerClient;
 using peerjam::CliMode;
 using peerjam::PeerOptions;
 
 int main(int argc, char** argv) {
+    for (int i = 1; i < argc; ++i) {
+        const std::string arg = argv[i];
+        if (arg == "--help" || arg == "-h") {
+            peerjam::print_cli_help(CliMode::NetworkTest);
+            return 0;
+        }
+    }
     if (argc == 1) {
         peerjam::print_cli_help(CliMode::NetworkTest);
         return 1;

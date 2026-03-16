@@ -170,6 +170,9 @@ PCM remains default, with runtime codec adaptation enabled in
 `AudioRuntime::maybe_switch_runtime_codec()`. Runtime transitions update both source format
 and sink source option, and are logged for session diagnostics.
 
+Explicit operator codec selection via CLI/config is preserved through profile/recommendation
+application during runtime setup, preventing silent override of intentional manual policy.
+
 ---
 
 ### 11. Layer Separation
@@ -196,6 +199,14 @@ reports upward. No layer reads another layer's internal state directly.
 Build configuration supports Linux and macOS dependency discovery without hardcoded
 single-platform library paths, using package-managed discovery (`pkg-config`/standard CMake
 finders) and explicit override for `AOO_ROOT`.
+
+Additional verified constraints:
+
+- Build-critical AOO sources are available via in-repo vendoring (`third_party/aoo`), so
+  cross-repository path assumptions are no longer required.
+- Cross-machine stale-cache reuse is handled as an operational anti-pattern with explicit
+  cleanup/runbook guidance.
+- Probe socket bind strategy avoids shared-port contention with active runtime media sockets.
 
 ---
 
@@ -244,6 +255,8 @@ the classifier returns `not_ready` and recommends against PCM streaming.
 | Clock drift managed continuously with smooth correction | PASS | Drift estimate drives AOO timefilter bandwidth updates |
 | Buffering intentionally small and measurable | PASS | Runtime adaptive sink-buffer controller with bounded target |
 | Architecture viable on real public-internet links | PASS | Scoring model, thresholds, and NAT traversal are internet-realistic |
+| Clean build from fresh checkout is reproducible across macOS/Linux | PASS | Build runbook and dependency layout avoid machine-specific generated artifacts |
+| Probe measurements do not contend with runtime UDP socket on same port | PASS | Probe bind policy uses interface-address + ephemeral port |
 
 ---
 

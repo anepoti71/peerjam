@@ -84,8 +84,10 @@ int UdpDatagramSocket::open(int port) {
 
 int UdpDatagramSocket::open_bound(const sockaddr_storage& addr, socklen_t addr_len) {
     std::unique_lock lock(fd_mutex_);
-    // Bind to the exact candidate address/port to ensure pair probes use true path endpoints.
-    const int fd = create_bound_socket(addr, addr_len, true);
+    // Bind to the candidate interface/address but allow an ephemeral port.
+    // This avoids SO_REUSEPORT fan-out with the main runtime socket when both
+    // sockets would otherwise share the same UDP port.
+    const int fd = create_bound_socket(addr, addr_len, false);
     if (fd < 0) {
         return 1;
     }

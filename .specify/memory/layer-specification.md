@@ -72,6 +72,8 @@ Outputs:
 - Candidate exchange must publish and retrieve full candidate sets efficiently, outside the
   steady-state media hot path.
 - Relay candidates must remain available but de-prioritized unless direct paths fail.
+- For non-localhost sessions, loopback candidates must be excluded from active candidate-pair
+  scoring and selection.
 
 ### Metrics
 
@@ -106,6 +108,12 @@ Measured metrics:
 - loss
 - reordering
 - stability over a moving window
+
+Operational constraints:
+
+- Probe sockets must bind to the selected local interface/address but use a non-conflicting
+  local port (ephemeral bind) to avoid `SO_REUSEPORT` fan-out with active media sockets.
+- Probe dispatch for multiple remotes should avoid per-packet linear scans where practical.
 
 ### Scoring model
 
@@ -144,12 +152,15 @@ Where:
   - media timestamp
   - stream ID
   - codec/format identity
-  - payload frame index when fragmented
+- payload frame index when fragmented
 - The transport must support:
   - PCM baseline mode
   - low-delay Opus fallback mode
   - packet resend requests where applicable
-  - packet reordering
+- packet reordering
+- Runtime receive/decode logs indicating repeated frame-size mismatch (for example
+  `decode failed nsamples`) must be treated as configuration/runtime misalignment and trigger
+  operational mitigation guidance.
 
 ### Packetization targets
 
@@ -183,6 +194,8 @@ Where:
 - frame sizing must remain small
 - codec choice must be adjustable per path and session
 - total codec-added latency must remain visible in reports
+- Explicit operator codec overrides (CLI/config) must remain authoritative unless override
+  behavior is explicitly disabled by operator policy.
 
 ## 6. Jitter Buffer Layer
 

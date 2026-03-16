@@ -1,7 +1,7 @@
 <!--
   Sync Impact Report
   ==================
-  Version change: 1.0.1 → 1.0.2
+  Version change: 1.0.2 → 1.0.3
   Source: Reconciled from speckit/speckit.constitution (now removed)
 
   Added sections:
@@ -162,6 +162,21 @@ Required implications:
 - Cross-layer coupling is allowed only through explicit interfaces and metrics.
 - The implementation MUST support replacing one layer without rewriting the entire system.
 
+### XIV. Reproducible and Portable Operations
+
+Build, run, and test workflows MUST be reproducible across macOS and Linux without
+environment-specific hidden assumptions.
+
+Required implications:
+
+- Core source dependencies required for build-critical paths MUST be vendored under this
+  repository (`third_party/`) or explicitly provisioned with deterministic instructions.
+- Generated build artifacts and caches MUST NOT be treated as source-of-truth project state.
+- Tooling scripts and make targets MUST use portable shell/runtime assumptions.
+- Operational runbooks MUST distinguish host-specific commands from shared commands.
+- Runtime probe sockets used for path measurement MUST avoid port-sharing contention with
+  active media sockets.
+
 ### XII. Geographic Truthfulness
 
 The system MUST NOT promise sub-30 ms one-way interaction beyond plausible physical limits.
@@ -195,6 +210,10 @@ Any implementation or change is acceptable only if it preserves these invariants
 - Clock drift is managed continuously with smooth correction.
 - Buffering remains intentionally small and measurable.
 - The architecture remains viable on real public-internet links.
+- Clean configure/build from a fresh checkout works on supported target OSes without
+  inheriting prior-machine cache state.
+- Manual CLI overrides that represent explicit operator intent (for example codec choice)
+  are not silently overridden by automated recommendation fallback unless explicitly allowed.
 
 ## Change Policy
 
@@ -223,4 +242,4 @@ Operational verification and runbooks MUST explicitly document when commands req
 elevated permissions in constrained environments (for example, local sandbox restrictions
 that block UDP socket binding during `pj-net-test` execution).
 
-**Version**: 1.0.2 | **Ratified**: 2026-03-15 | **Last Amended**: 2026-03-16
+**Version**: 1.0.3 | **Ratified**: 2026-03-15 | **Last Amended**: 2026-03-16

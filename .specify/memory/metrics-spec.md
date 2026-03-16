@@ -42,6 +42,7 @@ All metrics defined. Sources: `MeasurementReport`, `PathSelectionReport`.
 | `overrun_count` | uint32 | count | AudioStreamReport | MISSING |
 | `reorder_count` | uint32 | count | AudioStreamReport | IMPL |
 | `missing_frame_count` | uint32 | count | AudioStreamReport (xrun_count proxy) | PARTIAL |
+| `decode_fail_count` | uint32 | count | runtime decode error path | PARTIAL |
 
 Notes:
 
@@ -50,6 +51,8 @@ Notes:
   split.
 - `missing_frame_count` is tracked as `xrun_count` in `AudioStreamReport`; rename to align
   with layer specification terminology.
+- decode-fail bursts (for example `decode failed nsamples`) should be counted in structured
+  telemetry rather than only emitted as raw logs.
 
 ---
 

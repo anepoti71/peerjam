@@ -549,7 +549,11 @@ void AooPeerClient::apply_input_session_profile() {
         PJ_LOG(Error, "failed to read session profile from " << options_.session_profile_in);
         return;
     }
+    const std::string locked_codec = options_.audio.codec;
     apply_session_profile(*profile, options_.audio);
+    if (options_.audio_codec_locked) {
+        options_.audio.codec = locked_codec;
+    }
     audio_.set_options(options_.audio);
 }
 
@@ -599,7 +603,11 @@ int AooPeerClient::run_qualification(bool include_audio) {
     path_report = path_manager_.current_report();
     align_selected_score_with_probe(path_report, probe_report);
     if (include_audio && options_.audio.seconds > 0) {
+        const std::string locked_codec = options_.audio.codec;
         apply_session_profile(probe_report.recommendation, options_.audio);
+        if (options_.audio_codec_locked) {
+            options_.audio.codec = locked_codec;
+        }
         if (ui_server_) {
             int input_index = -2;
             int output_index = -2;

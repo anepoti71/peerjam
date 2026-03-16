@@ -1,0 +1,8 @@
+{
+    "status": "ready",
+    "codec": "pcm-or-opus-lowdelay",
+    "sample_rate_hz": 48000,
+    "frame_samples": 128,
+    "initial_buffer_ms": 5,
+    "rationale": "Path is usable for music; start conservatively and prefer PCM on wired clean links."
+  }

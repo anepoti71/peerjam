@@ -1,35 +1,46 @@
-# Quick 2-Machine Test (Server IP: 192.168.0.21)
+# Quick 2-Machine Test (192.168.0.21 <-> 192.168.0.58)
 
-This is a complete, minimal test plan for two machines on the same LAN:
+Complete reproducible flow for LAN testing with fixed roles:
 
-- Machine A (server + peer + browser): `192.168.0.21`
-- Machine B (peer + browser): another LAN IP
+- Machine A (macOS): `192.168.0.21` (signal server + alice)
+- Machine B (Linux): `192.168.0.58` (bob)
 
-The flow has 2 phases:
+Phases:
 
-1. Network qualification (`pj-net-test`)
-2. Audio + UI telemetry (`pj-peer-probe`)
+1. Clean build on each machine
+2. Signal server on `.21`
+3. Network qualification (`pj-net-test`)
+4. Audio runtime (`pj-peer-probe`) with forced PCM
+5. Optional UI telemetry
 
 ---
 
-## 1) Prerequisites on both machines
+## 1) Clean build on both machines
 
-Run from repo root:
+Run from repo root on each machine.
 
 ```bash
 cd /path/to/peerjam-native
-cmake -S . -B build-portaudio -DPEERJAM_ENABLE_PORTAUDIO=ON
+
+# Important when switching OS/machines or copying worktrees
+rm -rf build build-portaudio .run
+
+cmake --fresh -S . -B build-portaudio -DPEERJAM_ENABLE_PORTAUDIO=ON
 cmake --build build-portaudio -j 4
 ```
 
-Network requirements:
+Linux sanity check:
 
-- `192.168.0.21:11999` TCP/UDP reachable from Machine B
-- `192.168.0.21:12000` TCP reachable from Machine B
+```bash
+file ./build-portaudio/pj-peer-probe
+# must be ELF (not Mach-O)
+```
 
 ---
 
-## 2) Start signaling server on Machine A (192.168.0.21)
+## 2) Start signaling server on 192.168.0.21
+
+On Machine A (`192.168.0.21`):
 
 ```bash
 cd /path/to/peerjam-native
@@ -38,181 +49,175 @@ make server-start
 tail -f .run/log/pj-signal-server.log
 ```
 
-Expected log line:
+Expected line:
 
 - `pj-signal-server listening on TCP/UDP port 11999 and candidate exchange TCP port 12000`
 
+Network requirements from `.58` to `.21`:
+
+- TCP/UDP `11999`
+- TCP `12000`
+
 ---
 
-## 3) Run network test on both machines
+## 3) Network qualification (required)
 
-Use the same group on both machines:
+Use the same group on both machines.
 
 ```bash
-GROUP=lan-test-1
+GROUP=local-test-2
 ```
 
-Machine A:
+Machine A (`192.168.0.21`, alice):
 
 ```bash
 cd /path/to/peerjam-native
 ./build-portaudio/pj-net-test \
-  --config resources/config/local-tester-smoke.conf \
+  --config resources/config/net-test.conf \
   --server-host 192.168.0.21 \
+  --server-port 11999 \
   --group "$GROUP" \
   --user alice \
-  --udp-port 12110
+  --udp-port 12110 \
+  --interval-ms 20 \
+  --payload-bytes 32 \
+  --profile-out alice-session-profile.json
 ```
 
-Machine B:
+Machine B (`192.168.0.58`, bob):
 
 ```bash
 cd /path/to/peerjam-native
 ./build-portaudio/pj-net-test \
-  --config resources/config/local-tester-smoke.conf \
+  --config resources/config/net-test.conf \
   --server-host 192.168.0.21 \
+  --server-port 11999 \
   --group "$GROUP" \
   --user bob \
-  --udp-port 12111
+  --udp-port 12111 \
+  --interval-ms 20 \
+  --payload-bytes 32 \
+  --profile-out bob-session-profile.json
 ```
 
 Success criteria:
 
-- both commands exit `0`
-- both print JSON with `network`, `probe`, `session_profile`
+- `selected_local`/`selected_remote` are LAN addresses (not loopback)
+- `loss_percent` near `0`
+- `session_profile.status` = `ready`
 
 ---
 
-## 4) Start UI server on both machines
+## 4) Audio runtime test (`pj-peer-probe`)
 
-Machine A:
-
-```bash
-cd /path/to/peerjam-native/ui/peerjam-monitor
-python3 -m http.server 8088
-```
-
-Machine B:
+Use a new shared group:
 
 ```bash
-cd /path/to/peerjam-native/ui/peerjam-monitor
-python3 -m http.server 8088
+GROUP=local-audio-1
 ```
 
-Open browser:
+Force PCM on both peers and ignore profile input:
 
-- Machine A browser: `http://127.0.0.1:8088/index.html?ts=1`
-- Machine B browser: `http://127.0.0.1:8088/index.html?ts=1`
-
----
-
-## 5) Run peer probe (audio + UI telemetry)
-
-Use same group:
-
-```bash
-GROUP=lan-audio-1
-```
-
-Machine A:
+Machine A (`192.168.0.21`, alice):
 
 ```bash
 cd /path/to/peerjam-native
 ./build-portaudio/pj-peer-probe \
-  --config resources/config/local-tester-smoke.conf \
+  --config resources/config/peer-probe.conf \
   --server-host 192.168.0.21 \
+  --server-port 11999 \
   --group "$GROUP" \
   --user alice \
   --udp-port 12110 \
-  --ui-telemetry-port 17070 \
-  --ui-telemetry-interval-ms 100 \
-  --audio-device-io \
-  --audio-input-device -1 \
-  --audio-output-device -1 \
-  --tone-hz 0 \
-  --frame-samples 256 \
-  --source-buffer-ms 8 \
-  --sink-buffer-ms 20 \
-  --audio-seconds 120
+  --audio-seconds 120 \
+  --sample-rate 48000 \
+  --frame-samples 128 \
+  --sink-buffer-ms 5 \
+  --codec pcm \
+  --profile-in ""
 ```
 
-Machine B:
+Machine B (`192.168.0.58`, bob):
 
 ```bash
 cd /path/to/peerjam-native
 ./build-portaudio/pj-peer-probe \
-  --config resources/config/local-tester-smoke.conf \
+  --config resources/config/peer-probe.conf \
   --server-host 192.168.0.21 \
+  --server-port 11999 \
   --group "$GROUP" \
   --user bob \
   --udp-port 12111 \
-  --ui-telemetry-port 17071 \
-  --ui-telemetry-interval-ms 100 \
-  --audio-device-io \
-  --audio-input-device -1 \
-  --audio-output-device -1 \
-  --tone-hz 0 \
-  --frame-samples 256 \
-  --source-buffer-ms 8 \
-  --sink-buffer-ms 20 \
-  --audio-seconds 120
+  --audio-seconds 120 \
+  --sample-rate 48000 \
+  --frame-samples 128 \
+  --sink-buffer-ms 5 \
+  --codec pcm \
+  --profile-in ""
 ```
 
 ---
 
-## 6) Connect UI telemetry
+## 5) Optional UI telemetry
 
-Machine A browser:
-
-- endpoint: `http://127.0.0.1:17070/events`
-- click `Connect`
-- click `Refresh Devices`
-- choose input/output devices
-- click `Apply Devices`
-
-Machine B browser:
-
-- endpoint: `http://127.0.0.1:17071/events`
-- click `Connect`
-- click `Refresh Devices`
-- choose input/output devices
-- click `Apply Devices`
-
-Optional checks:
+On each machine, serve UI files:
 
 ```bash
-curl -s http://127.0.0.1:17070/devices
-curl -s http://127.0.0.1:17071/devices
+cd /path/to/peerjam-native/ui/peerjam-monitor
+python3 -m http.server 8088
 ```
+
+Browser URLs:
+
+- Machine A UI: `http://127.0.0.1:8088/index.html?ts=1`
+- Machine B UI: `http://127.0.0.1:8088/index.html?ts=1`
+
+Peer telemetry endpoints:
+
+- A: `http://127.0.0.1:17070/events`
+- B: `http://127.0.0.1:17071/events`
+
+If needed, run peer-probe with:
+
+- A: `--ui-telemetry-port 17070`
+- B: `--ui-telemetry-port 17071`
 
 ---
 
-## 7) Troubleshooting
+## 6) Fast troubleshooting
 
-If a peer says `no remote peer joined the group`:
+If `no remote peer joined the group`:
 
-- ensure same `GROUP` value
-- start second peer within 10-15 seconds
-
-If UI device dropdown is empty:
-
-- verify peer telemetry port is listening (`lsof -nP -iTCP:17070 -sTCP:LISTEN`)
-- check OS microphone permission for terminal app
-- use hard refresh in browser (`Cmd+Shift+R`)
-
-If UDP bind fails:
+- same `--group` on both sides
+- start both peers within 10-15 seconds
+- verify `.58 -> .21` connectivity:
 
 ```bash
-lsof -nP -iUDP:12110
-lsof -nP -iUDP:12111
-kill <PID>
+nc -vz 192.168.0.21 11999
+nc -vz 192.168.0.21 12000
 ```
+
+If server fails with candidate port error on `.21`:
+
+```bash
+lsof -nP -iTCP:12000 -sTCP:LISTEN
+make server-stop
+```
+
+If Linux shows `Exec format error`:
+
+- you are running a macOS binary; remove `build-portaudio` and rebuild natively.
+
+If `codec 'opus' not supported!` appears:
+
+- rebuild both machines from latest source
+- ensure both commands include `--codec pcm --profile-in ""`
 
 ---
 
-## 8) Cleanup
+## 7) Cleanup
 
-Machine A:
+Machine A (`192.168.0.21`):
 
 ```bash
 cd /path/to/peerjam-native
@@ -221,7 +226,7 @@ pkill -f "python3 -m http.server 8088" || true
 make server-stop
 ```
 
-Machine B:
+Machine B (`192.168.0.58`):
 
 ```bash
 cd /path/to/peerjam-native

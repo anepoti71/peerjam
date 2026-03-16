@@ -89,6 +89,7 @@ void print_cli_help(CliMode mode) {
         << "  --channels N\n"
         << "  --source-buffer-ms MS\n"
         << "  --sink-buffer-ms MS\n"
+        << "  --codec NAME\n"
         << "  --tone-hz HZ\n"
         << "  --audio-device-io\n"
         << "  --audio-input-device INDEX\n"
@@ -142,6 +143,9 @@ bool parse_peer_options(int argc, char** argv, CliMode mode, PeerOptions& option
         read_int_arg(argv, argv + argc, "--channels", options.audio.channels);
         read_int_arg(argv, argv + argc, "--source-buffer-ms", options.audio.source_buffer_ms);
         read_int_arg(argv, argv + argc, "--sink-buffer-ms", options.audio.sink_buffer_ms);
+        if (read_string_arg(argv, argv + argc, "--codec", options.audio.codec)) {
+            options.audio_codec_locked = true;
+        }
         read_double_arg(argv, argv + argc, "--tone-hz", options.audio.tone_hz);
         read_int_arg(argv, argv + argc, "--audio-input-device", options.audio.input_device_index);
         read_int_arg(argv, argv + argc, "--audio-output-device", options.audio.output_device_index);

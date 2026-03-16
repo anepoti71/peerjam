@@ -37,6 +37,7 @@ struct PeerOptions {
     int ui_telemetry_interval_ms {100};
     std::string session_profile_in;
     std::string session_profile_out;
+    bool audio_codec_locked {false};
     LoggingOptions logging;
     RecommendationPolicyOptions recommendation;
     AudioOptions audio;

@@ -5,8 +5,19 @@
 #include "peerjam/logic/network/candidate_exchange.hpp"
 
 #include <iostream>
+#include <string>
 
 int main(int argc, char** argv) {
+    for (int i = 1; i < argc; ++i) {
+        const std::string arg = argv[i];
+        if (arg == "--help" || arg == "-h") {
+            std::cout
+                << "pj-signal-server [options]\n"
+                << "  --config FILE\n"
+                << "  --port PORT\n";
+            return 0;
+        }
+    }
     try {
         peerjam::ServerOptions options;
         options.port = 10999;
