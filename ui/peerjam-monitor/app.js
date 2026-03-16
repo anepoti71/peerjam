@@ -28,6 +28,10 @@ const els = {
   jitterInput: document.getElementById("jitterInput"),
   bandwidthInput: document.getElementById("bandwidthInput"),
   applyTelemetryBtn: document.getElementById("applyTelemetryBtn"),
+  predictorRisk: document.getElementById("predictorRisk"),
+  predictorRequested: document.getElementById("predictorRequested"),
+  predictorApplied: document.getElementById("predictorApplied"),
+  predictorApplyStatus: document.getElementById("predictorApplyStatus"),
   reportJson: document.getElementById("reportJson"),
   parseReportBtn: document.getElementById("parseReportBtn"),
 };
@@ -50,6 +54,46 @@ const telemetryHistory = {
   latency: [],
   jitter: [],
 };
+
+const predictorMitigationLabels = {
+  0: "none",
+  1: "raise_sink_buffer",
+  2: "raise_sink_buffer_large",
+  3: "switch_codec_opus_lowdelay",
+};
+
+const predictorApplyStatusLabels = {
+  0: "no_action",
+  1: "applied",
+  2: "shadow_mode",
+  3: "cooldown",
+  4: "codec_locked",
+  5: "no_op",
+};
+
+function predictorMitigationLabel(value) {
+  const key = Number(value);
+  if (!Number.isFinite(key)) {
+    return "--";
+  }
+  return predictorMitigationLabels[key] || `unknown(${key})`;
+}
+
+function predictorStatusLabel(value) {
+  const key = Number(value);
+  if (!Number.isFinite(key)) {
+    return "--";
+  }
+  return predictorApplyStatusLabels[key] || `unknown(${key})`;
+}
+
+function renderPredictorState(predictor) {
+  const risk = Number(predictor?.risk_score);
+  els.predictorRisk.textContent = Number.isFinite(risk) ? risk.toFixed(3) : "--";
+  els.predictorRequested.textContent = predictorMitigationLabel(predictor?.last_requested);
+  els.predictorApplied.textContent = predictorMitigationLabel(predictor?.last_applied);
+  els.predictorApplyStatus.textContent = predictorStatusLabel(predictor?.apply_status);
+}
 
 function setCaptureState(active) {
   els.captureState.textContent = active ? "Capturing" : "Stopped";
@@ -320,6 +364,7 @@ function connectRealtimeEvents() {
         payload?.network?.bandwidth_kbps,
         "Realtime from C++"
       );
+      renderPredictorState(payload?.predictor);
       if (!audioContext) {
         drawExternalWave(payload?.audio?.wave);
       }
@@ -492,6 +537,7 @@ function parsePeerProbeReport(rawJson) {
   const codec = report?.audio?.codec || report?.audio?.codec_name || "pcm";
   const bandwidth = estimateBandwidthFromCodec(codec);
   setTelemetry(latency, jitter, bandwidth, `From report (codec ${codec})`);
+  renderPredictorState(report?.predictor);
 }
 
 els.startBtn.addEventListener("click", async () => {
@@ -575,3 +621,4 @@ els.parseReportBtn.addEventListener("click", () => {
 setCaptureState(false);
 drawTelemetryTrend();
 drawReceivedWave([]);
+renderPredictorState(null);

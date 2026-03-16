@@ -5,6 +5,7 @@ Simple browser UI for:
 - live microphone capture waveform
 - capture gain and monitor volume controls
 - telemetry panel (latency, jitter, bandwidth) with ms highlighting
+- predictor panel (risk, requested mitigation, applied mitigation, apply status)
 - parsing `pj-peer-probe` JSON output into telemetry cards
 
 ## Run
@@ -52,3 +53,12 @@ Bandwidth is shown in `kbps` and estimated from codec:
 
 - PCM: `3072 kbps` (48 kHz, stereo, float32 equivalent)
 - Opus: `96 kbps` nominal monitor estimate
+
+Predictor apply status labels:
+
+- `no_action`
+- `applied`
+- `shadow_mode`
+- `cooldown`
+- `codec_locked`
+- `no_op`

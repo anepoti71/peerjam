@@ -2,6 +2,7 @@
 
 #include "aoo/aoo_net.h"
 #include "peerjam/logic/audio/audio_runtime.hpp"
+#include "peerjam/logic/adaptation/predictor_worker.hpp"
 #include "peerjam/logic/control/peer_types.hpp"
 #include "peerjam/logic/network/candidate_gatherer.hpp"
 #include "peerjam/logic/network/candidate_exchange.hpp"
@@ -44,6 +45,9 @@ class AooPeerClient {
     std::shared_ptr<RemoteEndpoint> load_remote_endpoint() const;
     bool apply_selected_path(const PathSelectionReport& report);
     void update_selected_path_metrics(const PathSelectionReport& report);
+    void maybe_feed_predictor();
+    void maybe_apply_predictor_mitigation();
+    void maybe_check_predictor_feedback();
     void maybe_publish_ui_telemetry();
     static double estimated_bandwidth_kbps(const std::string& codec);
     void elect_timing_authority(const std::string& remote_user);
@@ -77,6 +81,20 @@ class AooPeerClient {
     std::atomic<double> selected_latency_ms_ {0.0};
     std::atomic<double> selected_jitter_ms_ {0.0};
     std::chrono::steady_clock::time_point next_ui_publish_at_ {};
+    std::chrono::steady_clock::time_point next_predictor_submit_at_ {};
+    std::chrono::steady_clock::time_point next_predictor_apply_at_ {};
+    std::uint64_t last_predictor_decision_sequence_ {};
+    PredictorMitigation last_predictor_requested_mitigation_ {PredictorMitigation::None};
+    PredictorMitigation last_predictor_applied_mitigation_ {PredictorMitigation::None};
+    int last_predictor_apply_status_ {};
+    float predictor_pre_apply_fill_ {0.0f};
+    std::uint32_t predictor_pre_apply_lost_ {0};
+    std::uint32_t predictor_pre_apply_gap_ {0};
+    PredictorMitigation predictor_feedback_mitigation_ {PredictorMitigation::None};
+    std::chrono::steady_clock::time_point predictor_feedback_check_at_ {};
+    double predictor_threshold_inflate_ {0.0};
+    std::chrono::steady_clock::time_point predictor_inflate_until_ {};
+    PredictorWorker predictor_;
     mutable std::mutex timing_mutex_;
     std::string timing_role_ {"unknown"};
     std::string timing_master_user_ {"unknown"};

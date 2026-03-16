@@ -145,6 +145,7 @@ add_library(peerjam_measure STATIC
   src/app/config.cpp
   src/app/session_profile.cpp
   src/common/logger.cpp
+  src/logic/adaptation/predictor_worker.cpp
   src/logic/audio/capture/audio_capture_source.cpp
   src/logic/audio/playback/audio_playback_sink.cpp
   src/logic/audio/audio_stream.cpp

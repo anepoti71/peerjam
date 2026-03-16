@@ -156,6 +156,23 @@ cd /path/to/peerjam-native
   --profile-in ""
 ```
 
+Predictive mitigation mode:
+
+- default config runs predictor in shadow mode (`predictor.shadow_mode = true`)
+- to enable active mitigation for this run, add:
+  - `--predictor-shadow-mode false`
+  - `--predictor-apply-cooldown-ms 1200`
+  - `--predictor-max-sink-buffer-ms 12`
+
+UI telemetry `predictor.apply_status` values:
+
+- `0`: no action requested
+- `1`: mitigation applied
+- `2`: shadow mode (suggestion only)
+- `3`: cooldown gate active
+- `4`: blocked by codec lock
+- `5`: no-op (already at limit / not applicable)
+
 ---
 
 ## 5) Optional UI telemetry

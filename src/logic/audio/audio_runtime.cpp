@@ -90,8 +90,9 @@ int AudioRuntime::setup(const UdpDatagramSocket& socket, const std::shared_ptr<R
     aoo_sink_set_option(sink_, aoo_opt_dynamic_resampling, (void*)&dynamic_resampling, sizeof(dynamic_resampling));
     current_sink_buffer_ms_ = options_.sink_buffer_ms;
     max_sink_buffer_ms_ = options_.sink_buffer_ms;
-    low_fill_streak_ = 0;
-    high_fill_streak_ = 0;
+    ewma_fill_avg_ = 0.0;
+    ewma_fill_jitter_ = 0.0;
+    ewma_initialized_ = false;
     const auto now = std::chrono::steady_clock::now();
     next_drift_adjust_at_ = now;
     next_buffer_adjust_at_ = now;
@@ -305,6 +306,47 @@ std::optional<AudioRuntime::RealtimeAudioSnapshot> AudioRuntime::latest_snapshot
     return latest_snapshot_;
 }
 
+bool AudioRuntime::apply_predictor_mitigation(PredictorMitigation mitigation, int max_sink_buffer_ms, bool allow_codec_switch) {
+    if (!source_ || !sink_) {
+        return false;
+    }
+    constexpr int kMinSinkBufferMs = 5;
+    const int configured_max_buffer_ms = std::max(kMinSinkBufferMs, max_sink_buffer_ms);
+    max_sink_buffer_ms_ = std::max(max_sink_buffer_ms_, configured_max_buffer_ms);
+
+    switch (mitigation) {
+        case PredictorMitigation::RaiseSinkBuffer:
+        case PredictorMitigation::RaiseSinkBufferLarge: {
+            const int step_ms = (mitigation == PredictorMitigation::RaiseSinkBufferLarge) ? 2 : 1;
+            const int next_buffer_ms = std::min(max_sink_buffer_ms_, current_sink_buffer_ms_ + step_ms);
+            if (next_buffer_ms <= current_sink_buffer_ms_) {
+                return false;
+            }
+            aoo_sink_set_buffersize(sink_, next_buffer_ms);
+            current_sink_buffer_ms_ = next_buffer_ms;
+            options_.sink_buffer_ms = next_buffer_ms;
+            next_buffer_adjust_at_ = std::chrono::steady_clock::now() + std::chrono::milliseconds(600);
+            sync_tracker_options();
+            return true;
+        }
+        case PredictorMitigation::SwitchCodecOpusLowDelay: {
+            if (!allow_codec_switch || active_codec_ == "opus-lowdelay") {
+                return false;
+            }
+            if (!set_source_codec("opus-lowdelay")) {
+                return false;
+            }
+            options_.codec = "opus-lowdelay";
+            codec_stable_since_ = std::chrono::steady_clock::now();
+            next_codec_eval_at_ = codec_stable_since_ + std::chrono::milliseconds(1000);
+            return true;
+        }
+        case PredictorMitigation::None:
+            return false;
+    }
+    return false;
+}
+
 int32_t AudioRuntime::reply_callback(void* user, const char* data, int32_t size) {
     auto* context = static_cast<ReplyContext*>(user);
     if (!context || !context->socket || !context->endpoint_ref) {
@@ -487,44 +529,50 @@ void AudioRuntime::maybe_adjust_sink_buffer(float buffer_fill, std::chrono::stea
     if (!sink_ || now < next_buffer_adjust_at_) {
         return;
     }
+    next_buffer_adjust_at_ = now + std::chrono::milliseconds(80);
 
     constexpr int kMinSinkBufferMs = 5;
-    constexpr int kIncreaseStepMs = 1;
-    constexpr int kDecreaseStepMs = 1;
-    constexpr float kLowFillThreshold = 0.22f;
-    constexpr float kHighFillThreshold = 0.70f;
-    constexpr int kIncreaseStreak = 3;
-    constexpr int kDecreaseStreak = 24;
+    constexpr double kFillAlpha = 0.10;
+    constexpr double kJitterAlpha = 0.10;
+    // Increase when smoothed fill drops below this threshold (widened by jitter).
+    constexpr double kLowFillThreshold = 0.30;
+    // Only decrease when fill is consistently this high.
+    constexpr double kHighFillThreshold = 0.70;
+    // How much each unit of EWMA jitter widens the low-fill increase zone.
+    constexpr double kJitterFactor = 1.5;
+    // Only decrease if fill deviation is below this (stable link).
+    constexpr double kLowJitterThreshold = 0.08;
 
-    if (buffer_fill < kLowFillThreshold) {
-        ++low_fill_streak_;
-        high_fill_streak_ = 0;
-    } else if (buffer_fill > kHighFillThreshold) {
-        ++high_fill_streak_;
-        low_fill_streak_ = 0;
-    } else {
-        low_fill_streak_ = 0;
-        high_fill_streak_ = 0;
-    }
-
-    int next_buffer_ms = current_sink_buffer_ms_;
-    if (low_fill_streak_ >= kIncreaseStreak) {
-        next_buffer_ms = std::min(max_sink_buffer_ms_, current_sink_buffer_ms_ + kIncreaseStepMs);
-        low_fill_streak_ = 0;
-    } else if (high_fill_streak_ >= kDecreaseStreak) {
-        next_buffer_ms = std::max(kMinSinkBufferMs, current_sink_buffer_ms_ - kDecreaseStepMs);
-        high_fill_streak_ = 0;
-    }
-
-    if (next_buffer_ms != current_sink_buffer_ms_) {
-        aoo_sink_set_buffersize(sink_, next_buffer_ms);
-        current_sink_buffer_ms_ = next_buffer_ms;
-        options_.sink_buffer_ms = next_buffer_ms;
-        sync_tracker_options();
-        next_buffer_adjust_at_ = now + std::chrono::milliseconds(500);
+    const double fill = static_cast<double>(buffer_fill);
+    if (!ewma_initialized_) {
+        ewma_fill_avg_ = fill;
+        ewma_fill_jitter_ = 0.0;
+        ewma_initialized_ = true;
         return;
     }
-    next_buffer_adjust_at_ = now + std::chrono::milliseconds(80);
+
+    ewma_fill_avg_ += kFillAlpha * (fill - ewma_fill_avg_);
+    const double fill_deviation = std::abs(fill - ewma_fill_avg_);
+    ewma_fill_jitter_ += kJitterAlpha * (fill_deviation - ewma_fill_jitter_);
+
+    // Increase zone: low fill or high jitter eating into safe headroom.
+    const double effective_low = kLowFillThreshold + kJitterFactor * ewma_fill_jitter_;
+    int next_buffer_ms = current_sink_buffer_ms_;
+    if (ewma_fill_avg_ < effective_low) {
+        next_buffer_ms = std::min(max_sink_buffer_ms_, current_sink_buffer_ms_ + 1);
+    } else if (ewma_fill_avg_ > kHighFillThreshold && ewma_fill_jitter_ < kLowJitterThreshold) {
+        next_buffer_ms = std::max(kMinSinkBufferMs, current_sink_buffer_ms_ - 1);
+    }
+
+    if (next_buffer_ms == current_sink_buffer_ms_) {
+        return;
+    }
+
+    aoo_sink_set_buffersize(sink_, next_buffer_ms);
+    current_sink_buffer_ms_ = next_buffer_ms;
+    options_.sink_buffer_ms = next_buffer_ms;
+    sync_tracker_options();
+    next_buffer_adjust_at_ = now + std::chrono::milliseconds(500);
 }
 
 }  // namespace peerjam

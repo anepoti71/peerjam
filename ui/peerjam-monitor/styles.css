@@ -162,6 +162,21 @@ output {
   margin-bottom: 10px;
 }
 
+.predictor-panel {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.predictor-metric .metric-value {
+  font-size: 1rem;
+}
+
+.predictor-text {
+  font-family: "IBM Plex Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+}
+
 .metric {
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -223,6 +238,9 @@ textarea {
 
 @media (max-width: 760px) {
   .telemetry-grid {
+    grid-template-columns: 1fr;
+  }
+  .predictor-panel {
     grid-template-columns: 1fr;
   }
   .sliders {

@@ -4,6 +4,7 @@
 #include "peerjam/logic/audio/capture/audio_capture_source.hpp"
 #include "peerjam/logic/audio/playback/audio_playback_sink.hpp"
 #include "peerjam/logic/audio/audio_stream.hpp"
+#include "peerjam/logic/adaptation/predictor_worker.hpp"
 #include "peerjam/logic/control/peer_types.hpp"
 #include "peerjam/logic/transport/udp_datagram_socket.hpp"
 
@@ -53,6 +54,7 @@ class AudioRuntime {
     bool handle_datagram(const std::uint8_t* data, std::size_t size);
     AudioStreamReport run(TickHook tick_hook);
     std::optional<RealtimeAudioSnapshot> latest_snapshot() const;
+    bool apply_predictor_mitigation(PredictorMitigation mitigation, int max_sink_buffer_ms, bool allow_codec_switch);
 
   private:
     struct ReplyContext {
@@ -88,8 +90,9 @@ class AudioRuntime {
     std::unique_ptr<AudioPlaybackSink> playback_sink_;
     int current_sink_buffer_ms_ {};
     int max_sink_buffer_ms_ {};
-    int low_fill_streak_ {};
-    int high_fill_streak_ {};
+    double ewma_fill_avg_ {0.0};
+    double ewma_fill_jitter_ {0.0};
+    bool ewma_initialized_ {false};
     std::uint32_t last_codec_eval_lost_blocks_ {};
     std::uint32_t last_codec_eval_gap_blocks_ {};
     std::chrono::steady_clock::time_point next_codec_eval_at_ {};

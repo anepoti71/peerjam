@@ -108,6 +108,16 @@ void apply_recommendation_config(const std::unordered_map<std::string, std::stri
     recommendation.marginal_buffer_max_ms = parse_double(values, "recommendation.marginal.buffer_max_ms", recommendation.marginal_buffer_max_ms);
 }
 
+void apply_predictor_config(const std::unordered_map<std::string, std::string>& values, PredictorOptions& predictor) {
+    predictor.enabled = values.count("predictor.enabled") ? parse_bool(values.at("predictor.enabled")) : predictor.enabled;
+    predictor.shadow_mode = values.count("predictor.shadow_mode") ? parse_bool(values.at("predictor.shadow_mode")) : predictor.shadow_mode;
+    predictor.interval_ms = parse_int(values, "predictor.interval_ms", predictor.interval_ms);
+    predictor.risk_medium_threshold = parse_double(values, "predictor.risk_medium_threshold", predictor.risk_medium_threshold);
+    predictor.risk_high_threshold = parse_double(values, "predictor.risk_high_threshold", predictor.risk_high_threshold);
+    predictor.apply_cooldown_ms = parse_int(values, "predictor.apply_cooldown_ms", predictor.apply_cooldown_ms);
+    predictor.max_sink_buffer_ms = parse_int(values, "predictor.max_sink_buffer_ms", predictor.max_sink_buffer_ms);
+}
+
 void apply_audio_config(const std::unordered_map<std::string, std::string>& values, AudioOptions& audio) {
     audio.seconds = parse_int(values, "audio.seconds", audio.seconds);
     audio.sample_rate_hz = parse_int(values, "audio.sample_rate_hz", audio.sample_rate_hz);
@@ -164,6 +174,7 @@ bool load_peer_config(const std::string& path, PeerOptions& options) {
     options.session_profile_in = parse_string(values, "profile.in", options.session_profile_in);
     options.session_profile_out = parse_string(values, "profile.out", options.session_profile_out);
     apply_logging_config(values, options.logging);
+    apply_predictor_config(values, options.predictor);
     apply_recommendation_config(values, options.recommendation);
     apply_audio_config(values, options.audio);
     return true;

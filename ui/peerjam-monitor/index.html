@@ -73,6 +73,25 @@
 
       <canvas id="telemetryCanvas" width="900" height="130" aria-label="Telemetry Trend"></canvas>
 
+      <div class="predictor-panel">
+        <article class="metric predictor-metric">
+          <p class="metric-label">Predictor Risk</p>
+          <p class="metric-value"><span id="predictorRisk">--</span></p>
+        </article>
+        <article class="metric predictor-metric">
+          <p class="metric-label">Requested Mitigation</p>
+          <p class="metric-value predictor-text"><span id="predictorRequested">--</span></p>
+        </article>
+        <article class="metric predictor-metric">
+          <p class="metric-label">Applied Mitigation</p>
+          <p class="metric-value predictor-text"><span id="predictorApplied">--</span></p>
+        </article>
+        <article class="metric predictor-metric">
+          <p class="metric-label">Apply Status</p>
+          <p class="metric-value predictor-text"><span id="predictorApplyStatus">--</span></p>
+        </article>
+      </div>
+
       <details class="details">
         <summary>Manual Telemetry Update</summary>
         <div class="manual-grid">

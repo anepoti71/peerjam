@@ -44,6 +44,19 @@ bool read_double_arg(char** begin, char** end, const std::string& flag, double& 
     return false;
 }
 
+bool parse_bool_string(const std::string& value) {
+    return value == "1" || value == "true" || value == "yes" || value == "on";
+}
+
+bool read_bool_arg(char** begin, char** end, const std::string& flag, bool& target) {
+    std::string value;
+    if (!read_string_arg(begin, end, flag, value)) {
+        return false;
+    }
+    target = parse_bool_string(value);
+    return true;
+}
+
 }  // namespace
 
 void print_cli_help(CliMode mode) {
@@ -61,6 +74,13 @@ void print_cli_help(CliMode mode) {
             << "  --path-reprobe-ms MS\n"
             << "  --path-switch-margin SCORE\n"
             << "  --path-switch-wins N\n"
+            << "  --predictor-enabled BOOL\n"
+            << "  --predictor-shadow-mode BOOL\n"
+            << "  --predictor-interval-ms MS\n"
+            << "  --predictor-risk-medium SCORE\n"
+            << "  --predictor-risk-high SCORE\n"
+            << "  --predictor-apply-cooldown-ms MS\n"
+            << "  --predictor-max-sink-buffer-ms MS\n"
             << "  --profile-out FILE\n"
             << "  --group-password PASSWORD\n"
             << "  --user-password PASSWORD\n";
@@ -80,6 +100,13 @@ void print_cli_help(CliMode mode) {
         << "  --path-reprobe-ms MS\n"
         << "  --path-switch-margin SCORE\n"
         << "  --path-switch-wins N\n"
+        << "  --predictor-enabled BOOL\n"
+        << "  --predictor-shadow-mode BOOL\n"
+        << "  --predictor-interval-ms MS\n"
+        << "  --predictor-risk-medium SCORE\n"
+        << "  --predictor-risk-high SCORE\n"
+        << "  --predictor-apply-cooldown-ms MS\n"
+        << "  --predictor-max-sink-buffer-ms MS\n"
         << "  --ui-telemetry-port PORT\n"
         << "  --ui-telemetry-interval-ms MS\n"
         << "  --profile-in FILE\n"
@@ -131,6 +158,13 @@ bool parse_peer_options(int argc, char** argv, CliMode mode, PeerOptions& option
     read_int_arg(argv, argv + argc, "--path-reprobe-ms", options.path_reprobe_interval_ms);
     read_double_arg(argv, argv + argc, "--path-switch-margin", options.path_switch_margin_score);
     read_int_arg(argv, argv + argc, "--path-switch-wins", options.path_switch_consecutive_wins);
+    read_bool_arg(argv, argv + argc, "--predictor-enabled", options.predictor.enabled);
+    read_bool_arg(argv, argv + argc, "--predictor-shadow-mode", options.predictor.shadow_mode);
+    read_int_arg(argv, argv + argc, "--predictor-interval-ms", options.predictor.interval_ms);
+    read_double_arg(argv, argv + argc, "--predictor-risk-medium", options.predictor.risk_medium_threshold);
+    read_double_arg(argv, argv + argc, "--predictor-risk-high", options.predictor.risk_high_threshold);
+    read_int_arg(argv, argv + argc, "--predictor-apply-cooldown-ms", options.predictor.apply_cooldown_ms);
+    read_int_arg(argv, argv + argc, "--predictor-max-sink-buffer-ms", options.predictor.max_sink_buffer_ms);
     read_int_arg(argv, argv + argc, "--ui-telemetry-port", options.ui_telemetry_port);
     read_int_arg(argv, argv + argc, "--ui-telemetry-interval-ms", options.ui_telemetry_interval_ms);
     read_string_arg(argv, argv + argc, "--profile-out", options.session_profile_out);

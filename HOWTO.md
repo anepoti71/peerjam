@@ -114,6 +114,22 @@ Each binary accepts:
 
 CLI flags still override values from the config file.
 
+Predictor (hybrid reactive + predictive) config keys:
+
+- `predictor.enabled`
+- `predictor.shadow_mode`
+- `predictor.interval_ms`
+- `predictor.risk_medium_threshold`
+- `predictor.risk_high_threshold`
+- `predictor.apply_cooldown_ms`
+- `predictor.max_sink_buffer_ms`
+
+Recommended rollout:
+
+1. Start with `predictor.shadow_mode = true` to validate decisions safely.
+2. Switch to `predictor.shadow_mode = false` after observing stable suggestions.
+3. Keep `predictor.apply_cooldown_ms >= 1000` and `predictor.max_sink_buffer_ms` bounded (`10-14 ms`).
+
 ## 5. Logging
 
 Logging is configured in the same config files with:
@@ -459,6 +475,21 @@ What to verify:
 - received waveform is active (remote peer audio)
 - latency and jitter telemetry stay stable
 - one-way latency remains below the mandatory `< 30 ms` budget
+- predictor telemetry fields are coherent:
+  - `predictor.risk_score`
+  - `predictor.mitigation`
+  - `predictor.last_requested`
+  - `predictor.last_applied`
+  - `predictor.apply_status`
+
+`predictor.apply_status` values:
+
+- `0`: no action requested
+- `1`: mitigation applied
+- `2`: shadow mode (suggestion only)
+- `3`: cooldown gate active
+- `4`: blocked by codec lock
+- `5`: no-op (already at limit / not applicable)
 
 ## 12. Latency Budget Requirement
 

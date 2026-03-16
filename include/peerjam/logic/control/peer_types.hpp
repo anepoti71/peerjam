@@ -15,6 +15,16 @@ struct LoggingOptions {
     std::string file_path;
 };
 
+struct PredictorOptions {
+    bool enabled {true};
+    bool shadow_mode {true};
+    int interval_ms {150};
+    double risk_medium_threshold {0.45};
+    double risk_high_threshold {0.65};
+    int apply_cooldown_ms {1200};
+    int max_sink_buffer_ms {12};
+};
+
 struct PeerOptions {
     std::string server_host;
     int server_port {};
@@ -39,6 +49,7 @@ struct PeerOptions {
     std::string session_profile_out;
     bool audio_codec_locked {false};
     LoggingOptions logging;
+    PredictorOptions predictor;
     RecommendationPolicyOptions recommendation;
     AudioOptions audio;
 };

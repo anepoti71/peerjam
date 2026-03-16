@@ -26,6 +26,15 @@ constexpr auto kCandidateFetchRetryInterval = std::chrono::milliseconds(500);
 constexpr std::size_t kMaxCandidatesDefault = 8;
 constexpr std::size_t kMaxCandidatesLocalhost = 2;
 
+enum PredictorApplyStatus : int {
+    kPredictorApplyNone = 0,
+    kPredictorApplyApplied = 1,
+    kPredictorApplyShadow = 2,
+    kPredictorApplyCooldown = 3,
+    kPredictorApplyCodecLocked = 4,
+    kPredictorApplyNoop = 5,
+};
+
 std::uint64_t stable_fnv1a_64(const std::string& text) {
     constexpr std::uint64_t kOffsetBasis = 14695981039346656037ULL;
     constexpr std::uint64_t kPrime = 1099511628211ULL;
@@ -137,7 +146,8 @@ AooPeerClient::AooPeerClient(PeerOptions options)
     : options_(std::move(options))
     , path_manager_(options_)
     , probe_(options_)
-    , audio_(options_.audio) {
+    , audio_(options_.audio)
+    , predictor_(options_.predictor) {
     apply_input_session_profile();
 }
 
@@ -175,6 +185,9 @@ void AooPeerClient::tick_callback(void* user) {
     }
     self->pump_client_events();
     self->maybe_send_client_messages();
+    self->maybe_feed_predictor();
+    self->maybe_apply_predictor_mitigation();
+    self->maybe_check_predictor_feedback();
     self->maybe_publish_ui_telemetry();
 }
 
@@ -220,6 +233,20 @@ int AooPeerClient::start() {
 
     receiver_running_.store(true);
     reprobe_running_.store(false);
+    predictor_.start();
+    next_predictor_submit_at_ = std::chrono::steady_clock::now();
+    next_predictor_apply_at_ = std::chrono::steady_clock::now();
+    last_predictor_decision_sequence_ = 0;
+    last_predictor_requested_mitigation_ = PredictorMitigation::None;
+    last_predictor_applied_mitigation_ = PredictorMitigation::None;
+    last_predictor_apply_status_ = kPredictorApplyNone;
+    predictor_pre_apply_fill_ = 0.0f;
+    predictor_pre_apply_lost_ = 0;
+    predictor_pre_apply_gap_ = 0;
+    predictor_feedback_mitigation_ = PredictorMitigation::None;
+    predictor_feedback_check_at_ = {};
+    predictor_threshold_inflate_ = 0.0;
+    predictor_inflate_until_ = {};
     remote_candidates_fetched_ = false;
     next_candidate_fetch_at_ = std::chrono::steady_clock::now();
     client_thread_ = std::thread([this]() { aoonet_client_run(client_); });
@@ -235,6 +262,7 @@ void AooPeerClient::stop() {
     }
     reprobe_running_.store(false);
     receiver_running_.store(false);
+    predictor_.stop();
     if (client_) {
         aoonet_client_disconnect(client_);
         aoonet_client_quit(client_);
@@ -419,11 +447,23 @@ void AooPeerClient::maybe_publish_ui_telemetry() {
 
     std::ostringstream os;
     os << std::fixed << std::setprecision(3);
+    const auto predictor_decision = predictor_.latest_decision();
     os << "{"
        << "\"network\":{"
        << "\"latency_ms\":" << selected_latency_ms_.load() << ","
        << "\"jitter_ms\":" << selected_jitter_ms_.load() << ","
        << "\"bandwidth_kbps\":" << estimated_bandwidth_kbps(snapshot->codec)
+       << "},"
+       << "\"predictor\":{"
+       << "\"enabled\":" << (predictor_.enabled() ? "true" : "false") << ","
+       << "\"shadow_mode\":" << (predictor_.shadow_mode() ? "true" : "false") << ","
+       << "\"risk_score\":" << predictor_decision.risk_score << ","
+       << "\"mitigation\":" << static_cast<int>(predictor_decision.mitigation) << ","
+       << "\"decision_sequence\":" << predictor_decision.sequence << ","
+       << "\"last_requested\":" << static_cast<int>(last_predictor_requested_mitigation_) << ","
+       << "\"last_applied\":" << static_cast<int>(last_predictor_applied_mitigation_) << ","
+       << "\"apply_status\":" << last_predictor_apply_status_ << ","
+       << "\"dropped_samples\":" << predictor_.dropped_samples()
        << "},"
        << "\"audio\":{"
        << "\"input_rms\":" << snapshot->input_rms << ","
@@ -447,6 +487,155 @@ void AooPeerClient::maybe_publish_ui_telemetry() {
     }
     os << "]}}";
     ui_server_->publish_json(os.str());
+}
+
+void AooPeerClient::maybe_feed_predictor() {
+    if (!predictor_.enabled()) {
+        return;
+    }
+    const auto now = std::chrono::steady_clock::now();
+    if (now < next_predictor_submit_at_) {
+        return;
+    }
+    next_predictor_submit_at_ = now + std::chrono::milliseconds(std::max(20, options_.predictor.interval_ms));
+
+    const auto snapshot = audio_.latest_snapshot();
+    if (!snapshot) {
+        return;
+    }
+
+    PredictorTelemetrySample sample;
+    sample.steady_time_ns = snapshot->steady_time_ns;
+    sample.buffer_fill_ratio = snapshot->buffer_fill_ratio;
+    sample.lost_blocks = snapshot->lost_blocks;
+    sample.gap_blocks = snapshot->gap_blocks;
+    sample.drift_ppm = snapshot->drift_ppm;
+    sample.selected_latency_ms = selected_latency_ms_.load();
+    sample.selected_jitter_ms = selected_jitter_ms_.load();
+    (void)predictor_.try_submit(sample);
+}
+
+void AooPeerClient::maybe_apply_predictor_mitigation() {
+    if (!predictor_.enabled()) {
+        return;
+    }
+
+    const auto decision = predictor_.latest_decision();
+    if (decision.sequence == 0 || decision.sequence == last_predictor_decision_sequence_) {
+        return;
+    }
+
+    last_predictor_decision_sequence_ = decision.sequence;
+    last_predictor_requested_mitigation_ = decision.mitigation;
+    last_predictor_apply_status_ = kPredictorApplyNone;
+
+    if (decision.mitigation == PredictorMitigation::None) {
+        return;
+    }
+
+    const auto now = std::chrono::steady_clock::now();
+    if (now < next_predictor_apply_at_) {
+        last_predictor_apply_status_ = kPredictorApplyCooldown;
+        return;
+    }
+
+    if (predictor_.shadow_mode()) {
+        last_predictor_apply_status_ = kPredictorApplyShadow;
+        return;
+    }
+
+    if (predictor_threshold_inflate_ > 0.0) {
+        const double effective_threshold = options_.predictor.risk_medium_threshold * (1.0 + predictor_threshold_inflate_);
+        if (decision.risk_score < effective_threshold) {
+            last_predictor_apply_status_ = kPredictorApplyNoop;
+            return;
+        }
+    }
+
+    if (decision.mitigation == PredictorMitigation::SwitchCodecOpusLowDelay && options_.audio_codec_locked) {
+        last_predictor_apply_status_ = kPredictorApplyCodecLocked;
+        return;
+    }
+
+    const bool applied = audio_.apply_predictor_mitigation(
+        decision.mitigation,
+        options_.predictor.max_sink_buffer_ms,
+        !options_.audio_codec_locked
+    );
+    if (!applied) {
+        last_predictor_apply_status_ = kPredictorApplyNoop;
+        return;
+    }
+
+    last_predictor_applied_mitigation_ = decision.mitigation;
+    last_predictor_apply_status_ = kPredictorApplyApplied;
+    next_predictor_apply_at_ = now + std::chrono::milliseconds(std::max(200, options_.predictor.apply_cooldown_ms));
+
+    const auto snapshot = audio_.latest_snapshot();
+    predictor_pre_apply_fill_ = snapshot ? snapshot->buffer_fill_ratio : 0.0f;
+    predictor_pre_apply_lost_ = snapshot ? snapshot->lost_blocks : 0;
+    predictor_pre_apply_gap_ = snapshot ? snapshot->gap_blocks : 0;
+    predictor_feedback_mitigation_ = decision.mitigation;
+    predictor_feedback_check_at_ = now + std::chrono::milliseconds(std::max(200, options_.predictor.apply_cooldown_ms));
+
+    PJ_LOG(Info, "predictor_mitigation_applied mitigation=" << static_cast<int>(decision.mitigation)
+        << " risk_score=" << decision.risk_score
+        << " sequence=" << decision.sequence);
+}
+
+void AooPeerClient::maybe_check_predictor_feedback() {
+    if (!predictor_.enabled() || predictor_.shadow_mode()) {
+        return;
+    }
+
+    const auto now = std::chrono::steady_clock::now();
+
+    // Decay any active inflation once its window expires.
+    if (predictor_threshold_inflate_ > 0.0 && now >= predictor_inflate_until_) {
+        predictor_threshold_inflate_ = std::max(0.0, predictor_threshold_inflate_ - 0.05);
+        predictor_inflate_until_ = now + std::chrono::seconds(10);
+    }
+
+    if (predictor_feedback_check_at_ == std::chrono::steady_clock::time_point{} || now < predictor_feedback_check_at_) {
+        return;
+    }
+    predictor_feedback_check_at_ = {};
+
+    const auto snapshot = audio_.latest_snapshot();
+    if (!snapshot) {
+        return;
+    }
+
+    bool improved = false;
+    if (predictor_feedback_mitigation_ == PredictorMitigation::SwitchCodecOpusLowDelay) {
+        // Codec switch targets jitter/loss, not fill level.  Success = events didn't keep
+        // accumulating (low delta) or fill is at least in a healthy range.
+        const std::uint32_t delta_lost = snapshot->lost_blocks >= predictor_pre_apply_lost_
+            ? snapshot->lost_blocks - predictor_pre_apply_lost_ : 0;
+        const std::uint32_t delta_gap = snapshot->gap_blocks >= predictor_pre_apply_gap_
+            ? snapshot->gap_blocks - predictor_pre_apply_gap_ : 0;
+        improved = (delta_lost + delta_gap) <= 2;
+    } else {
+        // Buffer raises should improve fill or leave it in an already-healthy range.
+        improved = (snapshot->buffer_fill_ratio - predictor_pre_apply_fill_) >= 0.03f
+            || snapshot->buffer_fill_ratio >= 0.35f;
+    }
+
+    if (!improved) {
+        predictor_threshold_inflate_ = std::min(0.30, predictor_threshold_inflate_ + 0.10);
+        predictor_inflate_until_ = now + std::chrono::seconds(10);
+        PJ_LOG(Info, "predictor_feedback_no_improvement"
+            << " mitigation=" << static_cast<int>(predictor_feedback_mitigation_)
+            << " fill_before=" << predictor_pre_apply_fill_
+            << " fill_after=" << snapshot->buffer_fill_ratio
+            << " inflate=" << predictor_threshold_inflate_);
+    } else {
+        predictor_threshold_inflate_ = std::max(0.0, predictor_threshold_inflate_ - 0.05);
+        PJ_LOG(Info, "predictor_feedback_improved"
+            << " mitigation=" << static_cast<int>(predictor_feedback_mitigation_)
+            << " fill_after=" << snapshot->buffer_fill_ratio
+            << " inflate=" << predictor_threshold_inflate_);
+    }
 }
 
 void AooPeerClient::elect_timing_authority(const std::string& remote_user) {
