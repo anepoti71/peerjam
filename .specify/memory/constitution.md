@@ -1,17 +1,16 @@
 <!--
   Sync Impact Report
   ==================
-  Version change: 1.0.2 → 1.0.3
-  Source: Reconciled from speckit/speckit.constitution (now removed)
+  Version change: 1.0.3 → 1.0.4
+  Source: Governance + runbook consolidation update
 
-  Added sections:
-  - Core Principles (13 principles, expanded from 5-slot template)
-  - Required Acceptance Criteria
-  - Change Policy
-  - Governance
+  Added sections: none
 
-  Modified principles: N/A (initial fill)
-  Removed sections: N/A
+  Modified principles:
+  - II. Performance Is Mandatory (explicit async predictor/control-plane requirement)
+  - Required Acceptance Criteria (predictor isolation + deterministic publication requirement)
+
+  Removed sections: none
 
   Templates status:
   - .specify/templates/plan-template.md       — ✅ no changes needed
@@ -63,6 +62,8 @@ Required implications:
   steady-state media processing path.
 - Background reprobe and switching decisions MUST execute asynchronously from the media
   processing path.
+- Predictive/adaptive controllers MUST execute off the audio hot path (separate worker or
+  equivalent asynchronous component) with non-blocking handoff to runtime control.
 - Runtime configuration and logging MUST be externally configurable.
 - Production mode MUST support logging level `off` so normal operation can avoid avoidable
   logging overhead.
@@ -214,6 +215,8 @@ Any implementation or change is acceptable only if it preserves these invariants
   inheriting prior-machine cache state.
 - Manual CLI overrides that represent explicit operator intent (for example codec choice)
   are not silently overridden by automated recommendation fallback unless explicitly allowed.
+- Cross-thread decision publication for adaptive control MUST be deterministic and torn-read
+  safe (for example release/acquire commit marker or seqlock snapshot pattern).
 
 ## Change Policy
 
@@ -242,4 +245,4 @@ Operational verification and runbooks MUST explicitly document when commands req
 elevated permissions in constrained environments (for example, local sandbox restrictions
 that block UDP socket binding during `pj-net-test` execution).
 
-**Version**: 1.0.3 | **Ratified**: 2026-03-15 | **Last Amended**: 2026-03-16
+**Version**: 1.0.4 | **Ratified**: 2026-03-15 | **Last Amended**: 2026-03-16
